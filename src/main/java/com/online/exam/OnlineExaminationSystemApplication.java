@@ -1,16 +1,10 @@
 package com.online.exam;
 
-import com.online.exam.model.Role;
-import com.online.exam.model.User;
-import com.online.exam.model.UserRole;
 import com.online.exam.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SpringBootApplication
 public class OnlineExaminationSystemApplication implements CommandLineRunner {

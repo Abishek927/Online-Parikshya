@@ -4,22 +4,23 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Entity
 @Data
-@Table(name="user_role_table")
-public class UserRole {
+@Entity
+@Table(name="exam_attempt_table")
+public class ExamAttempt {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="user_role_id")
-    private Long userRoleId;
-
+    @Column(name="exam_attempt_id")
+    private Long examAttemptId;
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")
-    @JsonBackReference(value = "user_role_table")
+    @JsonBackReference(value = "user_table")
     private User user;
+
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name="role_id_fk",referencedColumnName = "role_id")
-    @JsonBackReference(value = "role_table")
-    private Role role;
+    @JoinColumn(name="exam_id_fk",referencedColumnName = "exam_id")
+    @JsonBackReference(value = "exam_table")
+    private Exam exam;
+
 
 }
