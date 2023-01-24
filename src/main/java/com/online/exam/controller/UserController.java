@@ -18,24 +18,24 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/create")
-    ResponseEntity<User> createUser(@RequestBody User user) throws Exception {
+    @PostMapping("/{catId}/create")
+    ResponseEntity<User> createUser(@PathVariable("catId")Long catId,@RequestBody User user) throws Exception {
         List<Role> userRole=new ArrayList<>();
         Role role=new Role();
-        role.setRoleName("Admin");
+        role.setRoleName("student");
         userRole.add(role);
 
 
 
 
-        User resultUser=this.userService.createUser(user,userRole);
+        User resultUser=this.userService.createUser(user,catId,userRole);
         return new ResponseEntity<User>(resultUser,HttpStatusCode.valueOf(200));
     }
 
     @GetMapping("/readByEmail")
     ResponseEntity<?> getUserByUserEmail(@RequestParam("userEmail") String userEmail){
         User user=this.userService.getUserByEmail(userEmail);
-        if(user==null){
+        if(user.equals(null)){
             return new ResponseEntity<>(new ApiResponse("user doesnot exist with the given email",false),HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<User>(user,HttpStatusCode.valueOf(200));

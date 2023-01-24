@@ -8,7 +8,7 @@ import java.util.List;
 public interface UserService {
 
 
-    User createUser(User user, List<Role> roles) throws Exception;
+    User createUser(User user,Long facultyId, List<Role> roles) throws Exception;
 
     User getUserByEmail(String email);
 

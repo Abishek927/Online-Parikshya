@@ -2,13 +2,18 @@ package com.online.exam.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table(name = "exam_table")
 public class Exam {
@@ -25,7 +30,8 @@ public class Exam {
     @Column(name="exam_question_display_limit")
     private int examQuestionDisplayLimit;
     @Column(name="exam_created")
-    private String examCreated;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime examCreated;
     @Column(name="exam_status")
     private String examStatus;
 

@@ -2,11 +2,13 @@ package com.online.exam.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -35,7 +37,8 @@ private String userContactNumber;
     @Column(name = "user_gender")
 private String userGender;
     @Column(name="user_date_of_birth")
-private String userDateOfBirth;
+    @JsonFormat(pattern ="yyyy-MM-dd")
+private LocalDate userDateOfBirth;
 
 
 
@@ -55,12 +58,9 @@ private String userDateOfBirth;
     private Course course;
 
 
-
-
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name="faculty_id_fk",referencedColumnName ="faculty_id")
-    @JsonBackReference(value = "faculty_table")
-    private Faculty faculty;
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
+    @JsonManagedReference(value = "user_table")
+   private List<UserFaculty> userFaculties;
 
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
@@ -69,9 +69,9 @@ private String userDateOfBirth;
 
 
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name = "sem_id_fk",referencedColumnName = "sem_id")
-    @JsonBackReference(value = "sem_table")
-    private Semester sem;
+    @JoinColumn(name = "cat_id_fk",referencedColumnName = "cat_id")
+    @JsonBackReference(value = "category_table")
+    private Category category;
 
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")

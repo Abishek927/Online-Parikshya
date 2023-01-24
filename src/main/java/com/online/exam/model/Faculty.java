@@ -2,13 +2,20 @@ package com.online.exam.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.util.List;
 @Entity
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
 @Table(name="faculty_table")
+@SQLDelete(sql = "UPDATE faculty_table f set f.deleted=true where f.faculty_id=?")
+@Where(clause = "deleted=false")
 public class Faculty {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -18,13 +25,15 @@ public class Faculty {
     private String facultyName;
     @Column(name="faculty_desc",nullable = false)
     private String facultyDesc;
-
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "faculty")
-    @JsonManagedReference(value = "faculty_table")
-    private List<Semester> semesterList;
+    @Column(name="deleted")
+    private boolean deleted=Boolean.FALSE;
 
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "faculty")
     @JsonManagedReference(value = "faculty_table")
-    private List<User> users;
+    private List<Category> categoryList;
+
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "faculty")
+    @JsonManagedReference(value = "faculty_table")
+    private List<UserFaculty> userFaculties;
 }

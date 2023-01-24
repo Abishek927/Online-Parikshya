@@ -1,15 +1,18 @@
 package com.online.exam.service.impl;
 
 import com.online.exam.exception.ResourceNotFoundException;
-import com.online.exam.model.Role;
-import com.online.exam.model.User;
-import com.online.exam.model.userRole;
+import com.online.exam.helper.QueryHelper;
+import com.online.exam.model.*;
+import com.online.exam.model.Category;
 import com.online.exam.repo.RoleRepo;
+import com.online.exam.repo.CategoryRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.UserService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,43 +27,70 @@ public class UserServiceImpl implements UserService {
     private RoleRepo roleRepo;
 
 
+    @Autowired
+    private CategoryRepo categoryRepo;
+
+    @Autowired
+    private QueryHelper queryHelper;
+
+
 
     @Override
-    public User createUser(User user, List<Role> roles) throws Exception {
-        List<userRole> userRoleList=new ArrayList<>();
-        userRole userRole=new userRole();
+    public User createUser(User user,Long catId, List<Role> roles) throws Exception {
+        List<userRole> userRoleList = new ArrayList<>();
+        userRole userRole = new userRole();
+        Category category = new Category();
+        User user1=new User();
+        if (catId > 0) {
+
+            category = queryHelper.getCategoryMethod(catId);
+        }
+             user1 = this.userRepo.findByUserEmail(user.getUserEmail());
+
+            if (user1 != null) {
+                throw new Exception("User already exist with the given useremail:" + user.getUserEmail());
+            } else {
+                for (Role eachRole : roles
+                ) {
+                    Role role = this.roleRepo.findByRoleName(eachRole.getRoleName());
+
+                    if (role == null) {
+                        throw new Exception("User does not provide valid role for registration!!!");
+                    } else {
+                        if (role.getRoleName().equalsIgnoreCase("student")) {
+                            if (category != null) {
+                                List<UserFaculty> userFaculties=new ArrayList<>();
+                                UserFaculty userFaculty=new UserFaculty();
+
+                                Faculty faculty =category.getFaculty();
+                                userFaculty.setFaculty(faculty);
+                                userFaculties.add(userFaculty);
+
+                                user.setCategory(category);
+                                user.setUserFaculties(userFaculties);
+                            }
+
+                        }
 
 
-        User user1 = this.userRepo.findByUserEmail(user.getUserEmail());
-        List<User> user2=new ArrayList<>();
-
-        List<Role> assignedRole=new ArrayList<>();
-        if (user1 != null) {
-            throw new Exception("User already exist with the given useremail:" + user.getUserEmail());
-        } else {
-            for (Role eachRole : roles
-            ) {
-                Role role = this.roleRepo.findByRoleName(eachRole.getRoleName());
-
-                if (role == null) {
-                    throw new Exception("User does not provide valid role for registration!!!");
-                } else {
-                    userRole.setUser(user);
-                    userRole.setRole(role);
-                    userRoleList.add(userRole);
-                    role.setUserRoles(userRoleList);
-                    user.setUserRoles(userRoleList);
+                        userRole.setUser(user);
+                        userRole.setRole(role);
+                        userRoleList.add(userRole);
+                        role.setUserRoles(userRoleList);
+                        user.setUserRoles(userRoleList);
 
 
-                    user1 = this.userRepo.save(user);
+                        user1 = this.userRepo.save(user);
 
 
+                    }
                 }
             }
 
 
+
             return user1;
-        }
+
 
 
     }
@@ -79,7 +109,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String deleteUser(Long userId) {
         String message="";
-        User retrievedUser=this.userRepo.findById(userId).orElseThrow(()->new ResourceNotFoundException("user","userId "+userId,null));
+        User retrievedUser=queryHelper.getUserMethod(userId);
         List<userRole> userRoles=retrievedUser.getUserRoles();
         for (userRole eachUserRole:userRoles
              ) {
@@ -99,7 +129,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(Long userId, User updatedUser) {
-        User retrievedUser=this.userRepo.findById(userId).orElseThrow(()->new ResourceNotFoundException("user","userId "+userId,null));
+        User retrievedUser=queryHelper.getUserMethod(userId);
         retrievedUser.setUserName(updatedUser.getUserName());
         retrievedUser.setUserEmail(updatedUser.getUserEmail());
         retrievedUser.setUserPassword(updatedUser.getUserPassword());
