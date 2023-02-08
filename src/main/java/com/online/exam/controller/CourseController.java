@@ -1,5 +1,6 @@
 package com.online.exam.controller;
 
+import com.online.exam.dto.CourseDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.model.Course;
 
@@ -16,8 +17,8 @@ public class CourseController {
     private CourseService courseService;
 
     @PostMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/create")
-    ResponseEntity<?> createCourseController(@PathVariable Long uId, @PathVariable Long facId, @PathVariable Long catId, @RequestBody Course course) throws Exception {
-                Course course1=this.courseService.createCourse(uId,facId,catId,course);
+    ResponseEntity<?> createCourseController(@PathVariable Long uId, @PathVariable Long facId, @PathVariable Long catId, @RequestBody CourseDto courseDto) throws Exception {
+                Course course1=this.courseService.createCourse(uId,facId,catId,courseDto);
                 if(course1==null){
                     return new ResponseEntity<>(new ApiResponse("Something went wrong!!!",false), HttpStatusCode.valueOf(500));
                 }

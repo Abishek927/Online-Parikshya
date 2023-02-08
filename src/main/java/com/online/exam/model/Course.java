@@ -53,4 +53,10 @@ public class Course {
     @JsonBackReference(value = "user_table")
     private User user;
 
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "course")
+    @JsonManagedReference(value = "course_table")
+    private List<Question> questions;
+
+
+
 }

@@ -6,10 +6,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,6 +21,8 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name="user_table")
+@SQLDelete(sql = "UPDATE user_table u set u.deleted=true where u.user_id=?")
+@Where(clause = "deleted=false")
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,16 +42,25 @@ private Long userRollNo;
 private String userContactNumber;
     @Column(name = "user_gender")
 private String userGender;
+
+    private Boolean deleted=Boolean.FALSE;
+
     @Column(name="user_date_of_birth")
     @JsonFormat(pattern ="yyyy-MM-dd")
 private LocalDate userDateOfBirth;
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
+    private Boolean isEnabled=Boolean.FALSE;
 
 
 
-
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
-    @JsonManagedReference(value = "user_table")
-    private List<userRole> userRoles;
+@ManyToMany(fetch = FetchType.EAGER)
+@JoinTable(
+        name="user_role",
+        joinColumns = @JoinColumn(name="user_id_fk",referencedColumnName = "user_id"),
+        inverseJoinColumns = @JoinColumn(name="role_id_fk",referencedColumnName = "role_id")
+)
+  private Set<Role> userRoles;
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy ="user")
     @JsonManagedReference(value = "user_table")
@@ -57,10 +72,13 @@ private LocalDate userDateOfBirth;
     @JsonBackReference(value = "course_table")
     private Course course;
 
-
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
-    @JsonManagedReference(value = "user_table")
-   private List<UserFaculty> userFaculties;
+@ManyToMany(fetch = FetchType.EAGER)
+@JoinTable(
+        name="user_faculty",
+        joinColumns = @JoinColumn(name="user_id_fk",referencedColumnName = "user_id"),
+        inverseJoinColumns = @JoinColumn(name="faculty_id_fk",referencedColumnName = "faculty_id")
+)
+private Set<Faculty> faculties;
 
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")

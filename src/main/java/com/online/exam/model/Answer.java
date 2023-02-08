@@ -27,8 +27,6 @@ public class Answer {
     @Column(name="answer_status",nullable = false)
     private String answerStatus;
 
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name="exam_id_fk",referencedColumnName = "exam_id")
-    @JsonBackReference(value = "exam_table")
-    private Exam exam;
+
+
 }

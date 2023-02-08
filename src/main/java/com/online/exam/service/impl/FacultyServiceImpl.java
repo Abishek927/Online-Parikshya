@@ -1,3 +1,4 @@
+/*
 package com.online.exam.service.impl;
 
 import com.online.exam.exception.ResourceNotFoundException;
@@ -147,3 +148,4 @@ public class FacultyServiceImpl implements FacultyService {
         return faculties;
     }
 }
+*/

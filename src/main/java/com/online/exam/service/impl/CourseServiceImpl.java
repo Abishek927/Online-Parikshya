@@ -1,15 +1,20 @@
 package com.online.exam.service.impl;
 
+import com.online.exam.dto.CategoryDto;
+import com.online.exam.dto.CourseDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.repo.CourseRepo;
 import com.online.exam.repo.RoleRepo;
 import com.online.exam.service.CourseService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -19,67 +24,47 @@ public class CourseServiceImpl implements CourseService {
     private RoleRepo roleRepo;
     @Autowired
     private CourseRepo courseRepo;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
-    public Course createCourse(Long userId, Long facultyId, Long categoryId, Course course) throws Exception {
+    public CourseDto createCourse(Long userId, Long facultyId, Long categoryId, CourseDto courseDto) throws Exception {
 
-        Course resultCourse=new Course();
+
+        Course resultCourse=null;
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty =this.queryHelper.getFacultyMethod(facultyId);
         Category category =this.queryHelper.getCategoryMethod(categoryId);
-        List<userRole> userRoles=user.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("teacher")||role.getRoleName().equalsIgnoreCase("admin")){
-                List<Course> courses=category.getCourseList();
-                if(!courses.isEmpty()) {
+
+                List<Course> courses = category.getCourseList();
+                if (!courses.isEmpty()) {
                     for (Course eachCourse : courses
                     ) {
                         Course retrievedCourse = this.courseRepo.findByCourseTitle(eachCourse.getCourseTitle());
-                        if (retrievedCourse.getCourseTitle().equals(course.getCourseTitle())) {
+                        if (retrievedCourse.getCourseTitle().equals(courseDto.getCourseName())) {
                             throw new Exception("Course with the given title already exist in the given category");
                         }
 
                     }
                 }
-                    List<UserFaculty> userFaculties = user.getUserFaculties();
-                if(!userFaculties.isEmpty()){
-                    for (UserFaculty eachUserFaculty : userFaculties
+
+
+
+
+                    List<Category> categories = faculty.getCategoryList();
+                    for (Category eachCategory : categories
                     ) {
-                        if(eachUserFaculty.getFaculty().getFacultyId().equals(faculty.getFacultyId())) {
-                            Faculty faculty1 = eachUserFaculty.getFaculty();
-
-                                List<Category> categories = faculty1.getCategoryList();
-                                for (Category eachCategory : categories
-                                ) {
-                                    if (eachCategory.getCategoryId().equals(category.getCategoryId())) {
-                                        course.setCategory(category);
-                                        course.setUser(user);
-                                        course.setCourseCreated(new Date());
-                                        resultCourse = this.courseRepo.save(course);
-
-                                    }
-                                }
+                        if (eachCategory.getCategoryId().equals(category.getCategoryId())) {
+                            Course course=this.modelMapper.map(courseDto,Course.class);
+                            course.setCategory(category);
+                            course.setUser(user);
+                            course.setCourseCreated(new Date());
+                            resultCourse = this.courseRepo.save(course);
 
                         }
-
                     }
 
-                    }else {
-                    throw new Exception("user faculties is null for the given user");
-                }
-
-            }else {
-                throw new Exception("Invalid role for the given user!!!");
-            }
-
-        }
-
-
-
-
-        return resultCourse;
+                    return this.modelMapper.map(resultCourse,CourseDto.class);
     }
 
     @Override
@@ -98,17 +83,13 @@ public class CourseServiceImpl implements CourseService {
             for (Course eachCourse:courses
                  ) {
                 if(eachCourse.getCourseId().equals(courseId)){
-                    List<userRole> userRoles=user.getUserRoles();
-                    for (userRole eachUserRole:userRoles
-                         ) {
-                        Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                        if(role.getRoleName().equalsIgnoreCase("teacher")||role.getRoleName().equals("admin")){
-                            List<UserFaculty> faculties=user.getUserFaculties();
+
+                            Set<Faculty> faculties=user.getFaculties();
                             if(!faculties.isEmpty()) {
-                                for (UserFaculty eachUserFaculties : faculties
+                                for (Faculty eachUserFaculties : faculties
                                 ) {
-                                    if (eachUserFaculties.getFaculty().getFacultyId().equals(faculty.getFacultyId())) {
-                                        Faculty faculty1 = eachUserFaculties.getFaculty();
+                                    if (eachUserFaculties.getFacultyId().equals(faculty.getFacultyId())) {
+                                        Faculty faculty1 = eachUserFaculties;
                                         List<Category> categories = faculty1.getCategoryList();
                                         if (!categories.isEmpty()) {
                                             for (Category eachCategory:categories
@@ -147,14 +128,10 @@ public class CourseServiceImpl implements CourseService {
                             }else {
                                 throw new Exception("no userfaculties for the given user with id "+user.getUserId());
                             }
-                        }else {
-                            throw new Exception("Invalid role of the given user!!!");
-                        }
+
                     }
 
-                }else{
-                    throw new Exception("Course with the given id "+courseId+" doesnot belong to the given category with id "+categoryId);
-                }
+
 
             }
         }
@@ -166,25 +143,18 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course updateCourse(Long userId, Long facultyId, Long categoryId, Long courseId,Course course) throws Exception {
+    public CourseDto updateCourse(Long userId, Long facultyId, Long categoryId, Long courseId,CourseDto courseDto) throws Exception {
         User retrievedUser=this.queryHelper.getUserMethod(userId);
         Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facultyId);
         Category retrievedCategory=this.queryHelper.getCategoryMethod(categoryId);
         Course retrievedCourse=this.queryHelper.getCourseMethod(courseId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
-        if(userRoles.isEmpty()){
-            throw new Exception("Provided role for the given user does not exist!!!");
 
-        }else {
-            for (userRole eachUserRole : userRoles
-            ) {
-                Role role = this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
 
-                    if (role.getRoleName().equalsIgnoreCase("teacher") || role.getRoleName().equals("admin")) {
-                        List<UserFaculty> userFaculties = retrievedUser.getUserFaculties();
-                        for (UserFaculty eachUserFaculty : userFaculties
+
+                        Set<Faculty> userFaculties = retrievedUser.getFaculties();
+                        for (Faculty eachUserFaculty : userFaculties
                         ) {
-                            Faculty faculty = eachUserFaculty.getFaculty();
+                            Faculty faculty = eachUserFaculty;
                             if (faculty.getFacultyId().equals(retrievedFaculty.getFacultyId())) {
                                 List<Category> categories = faculty.getCategoryList();
                                 for (Category eachCategory : categories
@@ -194,9 +164,18 @@ public class CourseServiceImpl implements CourseService {
                                         for (Course eachCourse : courses
                                         ) {
                                             if (eachCourse.getCourseId().equals(retrievedCourse.getCourseId())) {
-                                                retrievedCourse.setCourseTitle(course.getCourseTitle());
-                                                retrievedCourse.setCourseDesc(course.getCourseDesc());
-                                                retrievedCourse.setCategory(course.getCategory());
+                                                retrievedCourse.setCourseTitle(courseDto.getCourseName());
+                                                retrievedCourse.setCourseDesc(courseDto.getCourseDesc());
+                                                CategoryDto updateCat= courseDto.getCategoryDto();
+                                                if(updateCat!=null) {
+                                                    if (updateCat.getCategoryId().equals(eachCategory.getCategoryId())) {
+
+
+                                                        retrievedCourse.setCategory(this.modelMapper.map(courseDto.getCategoryDto(),Category.class));
+                                                    }
+                                                }else {
+                                                    retrievedCourse.setCategory(eachCategory);
+                                                }
                                                 retrievedCourse=this.courseRepo.save(retrievedCourse);
 
 
@@ -213,25 +192,60 @@ public class CourseServiceImpl implements CourseService {
                             }
 
                         }
-                    }else {
-                        throw new Exception("Invalid role for the given user");
-                    }
 
 
-            }
-        }
+
+
+
+
+
+        return this.modelMapper.map(retrievedCourse,CourseDto.class);
+    }
+
+    @Override
+    public List<CourseDto> getCoursesByCategory(Long userId, Long facultyId, Long categoryId) throws Exception {
+        List<Course> retrievedCourse=new ArrayList<>();
+        User user=this.queryHelper.getUserMethod(userId);
+       Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
+       Category category=this.queryHelper.getCategoryMethod(categoryId);
+       List<Course> courses=category.getCourseList();
+       if(!courses.isEmpty()){
+           List<userRole> userRoles=user.getUserRoles();
+           for (userRole eachUserRole:userRoles
+                ) {
+               Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
+               if(role.getRoleName().equalsIgnoreCase("admin")||role.getRoleName().equalsIgnoreCase("teacher")||role.getRoleName().equalsIgnoreCase("student")){
+                   Set<Faculty> userFaculties=user.getFaculties();
+                   if(!userFaculties.isEmpty()){
+                       for (Faculty eachUserFaculty:userFaculties
+                            ) {
+                           if(eachUserFaculty.getFacultyId().equals(faculty.getFacultyId())){
+                               Faculty faculty1=eachUserFaculty;
+                               List<Category> categories=faculty1.getCategoryList();
+
+                               for (Category eachCategory:categories
+                                    ) {
+                                   if(eachCategory.getCategoryId().equals(categoryId)){
+                                       retrievedCourse=this.courseRepo.findByCategory(category);
+                                   }
+                               }
+                           }
+                           
+                       }
+
+                   }else{
+                       throw new Exception("there is empty userfaculties for the given user!!!");
+                   }
+               }
+
+
+               }
+
+           }
 
 
         return retrievedCourse;
     }
 
-    @Override
-    public List<Course> getCoursesByCategory(Long userId, Long facultyId, Long categoryId) {
-        return null;
-    }
 
-    @Override
-    public Course getCourseByName(Long userId, Long facultyId, Long categoryId, String name) {
-        return null;
-    }
 }

@@ -1,6 +1,6 @@
 package com.online.exam.service.impl;
 
-import com.online.exam.exception.ResourceNotFoundException;
+import com.online.exam.dto.CategoryDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.model.Category;
@@ -9,63 +9,63 @@ import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.CategoryRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.CategoryService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
-    @Autowired
-    private FacultyRepo facultyRepo;
 
     @Autowired
     private RoleRepo roleRepo;
-    @Autowired
-    private UserRepo userRepo;
+
 
     @Autowired
     private CategoryRepo categoryRepo;
 
     @Autowired
     private QueryHelper queryHelper;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
-     public Category createCategory(Long userId, Long facultyId, Category category) throws Exception {
+     public CategoryDto createCategory(Long userId, Long facultyId, CategoryDto categoryDto) throws Exception {
 
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
-        Category retrievedCategory=this.categoryRepo.findByCategoryName(category.getCategoryName());
+        Category retrievedCategory=this.categoryRepo.findByCategoryName(categoryDto.getCategoryName());
 
-            List<UserFaculty> userFaculties=user.getUserFaculties();
-            for (UserFaculty eachUserFaculty:userFaculties
+            Set<Faculty> Faculties=user.getFaculties();
+            for (Faculty eachFaculty:Faculties
                  ) {
-                Faculty faculty1=eachUserFaculty.getFaculty();
+                Faculty faculty1=eachFaculty;
                 if(faculty1.getFacultyId().equals(faculty.getFacultyId())){
                     List<Category> categories=faculty1.getCategoryList();
                     for (Category eachCategory:categories
                          ) {
-                        if(eachCategory.getCategoryName().equalsIgnoreCase(category.getCategoryName())){
+                        if(eachCategory.getCategoryName().equalsIgnoreCase(categoryDto.getCategoryName())){
                             throw new Exception("Category with the given name already exist in given faculty!!!!");
                         }else{
 
 
 
-                            List<userRole> userRoles=user.getUserRoles();
-                            for (userRole eachUserRole:userRoles
-                            ) {
-                                Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                                if(role.getRoleName().equalsIgnoreCase("admin")){
+                            Category category=this.modelMapper.map(categoryDto,Category.class);
+
+
                                     category.setFaculty(faculty);
 
                                     retrievedCategory=this.categoryRepo.save(category);
 
 
 
-                                }
 
-                            }
+
+
 
 
 
@@ -82,7 +82,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         }
 
-        return retrievedCategory;
+        return this.modelMapper.map(retrievedCategory,CategoryDto.class);
     }
 
     @Override
@@ -91,18 +91,14 @@ public class CategoryServiceImpl implements CategoryService {
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
         Category category=this.categoryRepo.findByCategoryName(catName);
-        List<userRole> userRoles=user.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("admin")){
-                List<UserFaculty> userFaculties=user.getUserFaculties();
+
+                Set<Faculty> userFaculties=user.getFaculties();
                 if(userFaculties.isEmpty()){
                     throw new Exception("there is no faculty created by the given user!!!");
                 }else{
-                    for (UserFaculty eachUserFaculty:userFaculties
+                    for (Faculty eachUserFaculty:userFaculties
                          ) {
-                        Faculty faculty1=eachUserFaculty.getFaculty();
+                        Faculty faculty1=eachUserFaculty;
                         if(faculty1.getFacultyId().equals(faculty.getFacultyId())){
                             List<Category> categories=faculty1.getCategoryList();
                             for (Category eachCategory:categories
@@ -129,8 +125,8 @@ public class CategoryServiceImpl implements CategoryService {
                     }
                 }
 
-            }
-        }
+
+
 
 
 
@@ -144,29 +140,23 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Category> readCategoryByFaculty(Long userId, Long facultyId) {
+    public List<CategoryDto> readCategoryByFaculty(Long userId, Long facultyId) {
 
         List<Category> categories=new ArrayList<>();
         User user=queryHelper.getUserMethod(userId);
         Faculty faculty=queryHelper.getFacultyMethod(facultyId);
+        categories=faculty.getCategoryList();
+        List<CategoryDto>categoryDtos=categories.stream().map(category -> this.modelMapper.map(category,CategoryDto.class)).collect(Collectors.toList());
 
 
-         List<userRole> userRoles=user.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("admin")||role.getRoleName().equalsIgnoreCase("student")||role.getRoleName().equalsIgnoreCase("teacher")){
-                 categories=faculty.getCategoryList();
-            }
 
 
-        }
 
-        return categories;
+        return categoryDtos;
     }
 
     @Override
-    public Category readCategoryByName(Long userId,Long facultyId,String name) {
+    public CategoryDto readCategoryByName(Long userId,Long facultyId,String name) {
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
         Category category=this.categoryRepo.findByCategoryName(name);
@@ -174,14 +164,11 @@ public class CategoryServiceImpl implements CategoryService {
         for (Category eachCategory:categories
              ) {
             if(eachCategory.getCategoryId().equals(category.getCategoryId())){
-                List<userRole> userRoles=user.getUserRoles();
-                for (userRole eachUserRole:userRoles
-                     ) {
-                    Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                    if(role.getRoleName().equalsIgnoreCase("admin")||role.getRoleName().equalsIgnoreCase("student")||role.getRoleName().equalsIgnoreCase("teacher")){
-                        return category;
-                    }
-                }
+
+
+                        return this.modelMapper.map(category,CategoryDto.class);
+
+
 
             }
         }

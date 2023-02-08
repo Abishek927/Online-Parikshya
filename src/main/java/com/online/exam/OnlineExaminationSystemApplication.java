@@ -7,9 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class OnlineExaminationSystemApplication implements CommandLineRunner {
-    @Autowired
-    private UserService userService;
+public class OnlineExaminationSystemApplication implements CommandLineRunner{
 
 
     public static void main(String[] args) {

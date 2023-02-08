@@ -7,6 +7,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import java.util.List;
+import java.util.Set;
+
 @Entity
 
 @AllArgsConstructor
@@ -32,8 +34,6 @@ public class Faculty {
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "faculty")
     @JsonManagedReference(value = "faculty_table")
     private List<Category> categoryList;
-
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "faculty")
-    @JsonManagedReference(value = "faculty_table")
-    private List<UserFaculty> userFaculties;
+@ManyToMany(mappedBy = "faculties")
+ private Set<User> users;
 }
