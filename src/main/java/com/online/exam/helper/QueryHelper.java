@@ -27,6 +27,7 @@ public class  QueryHelper {
     @Autowired
     private QuestionRepo questionRepo;
 
+
     public    Category getCategoryMethod(Long catId){
         return this.categoryRepo.findById(catId).orElseThrow(()->new ResourceNotFoundException("category","categoryId ",catId));
     }

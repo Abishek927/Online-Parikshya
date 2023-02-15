@@ -1,6 +1,6 @@
 package com.online.exam.dto;
 
-import com.online.exam.model.Authority;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

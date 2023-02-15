@@ -11,10 +11,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.CachingUserDetailsService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -47,11 +49,15 @@ public class JwtTokenAuthorizationFilter extends OncePerRequestFilter {
 
             }
             if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.customUserDetailService.loadUserByUsername(userName);
-                if (userDetails != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    List<GrantedAuthority> authorities = this.jwtHelper.getAuthoritiesClaimsFromToken(jwtToken);
-                    Authentication authentication = this.jwtHelper.getAuthentication(userName, authorities, request);
+                 final UserDetails userPrincipal = this.customUserDetailService.loadUserByUsername(userName);
+                if (userPrincipal !=null && this.jwtHelper.validateToken(jwtToken, userPrincipal.getUsername())) {
+
+                    List<GrantedAuthority> authorities = this.jwtHelper.getAuthoritiesClaimFromToken(jwtToken);
+
+                    Authentication authentication = this.jwtHelper.getAthentication(userName, authorities, request);
+
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+
 
 
                 }

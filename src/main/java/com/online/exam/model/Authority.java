@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -16,7 +18,10 @@ import java.util.Set;
 @Entity
 @Table(name="authorities_table")
 
-public class Authority {
+public class Authority implements GrantedAuthority {
+
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name="authority_id")
@@ -28,5 +33,10 @@ public class Authority {
 
     public Authority(String authorityName) {
         this.authorityName = authorityName;
+    }
+
+    @Override
+    public String getAuthority() {
+        return authorityName;
     }
 }

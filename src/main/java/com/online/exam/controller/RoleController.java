@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/role")
@@ -20,5 +17,11 @@ public class RoleController {
     ResponseEntity<RoleDto> createRoleController(@RequestBody RoleDto roleDto){
         roleDto=roleService.createRole(roleDto);
         return new ResponseEntity<>(roleDto, HttpStatusCode.valueOf(200));
+    }
+    @PutMapping("/update/{roleId}")
+    ResponseEntity<RoleDto> updateRoleController(@PathVariable Long roleId,@RequestBody RoleDto roleDto) throws Exception {
+        roleDto=roleService.updateRole(roleDto,roleId);
+        return new ResponseEntity<>(roleDto, HttpStatusCode.valueOf(200));
+
     }
 }

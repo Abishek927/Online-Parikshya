@@ -1,4 +1,3 @@
-/*
 package com.online.exam.service.impl;
 
 import com.online.exam.helper.ExamHelper;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ExamServiceImpl implements ExamService {
@@ -32,7 +32,7 @@ public class ExamServiceImpl implements ExamService {
         Faculty retrievedFaculty =this.queryHelper.getFacultyMethod(facId);
         Category retrievedCategory =this.queryHelper.getCategoryMethod(catId);
         Course retrievedCourse =this.queryHelper.getCourseMethod(courseId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
+
         Faculty faculty=new Faculty();
         Exam resultExam=new Exam();
 
@@ -41,16 +41,12 @@ public class ExamServiceImpl implements ExamService {
 
 
 
-            for (userRole eachUserRole : userRoles
-            ) {
-                Role role = this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                if (role.getRoleName().equalsIgnoreCase("teacher")) {
-                    List<UserFaculty> userFaculties = retrievedUser.getUserFaculties();
+                    Set<Faculty> userFaculties = retrievedUser.getFaculties();
 
-                    for (UserFaculty eachUserFaculty : userFaculties
+                    for (Faculty eachUserFaculty : userFaculties
                     ) {
-                        if (eachUserFaculty.getFaculty().getFacultyId().equals(retrievedFaculty.getFacultyId())) {
-                            faculty = eachUserFaculty.getFaculty();
+                        if (eachUserFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())) {
+                            faculty = eachUserFaculty;
                         }
 
 
@@ -136,10 +132,10 @@ public class ExamServiceImpl implements ExamService {
                     }
 
 
-                }
 
 
-            }
+
+
 
 
 
@@ -157,22 +153,19 @@ public class ExamServiceImpl implements ExamService {
         Exam exam=this.queryHelper.getExamMethod(examId);
         Faculty faculty=new Faculty();
 
-        List<userRole> userRoles=retrievedUser.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("teacher")){
-                List<UserFaculty> userFaculties=retrievedUser.getUserFaculties();
-                for (UserFaculty eachUserFaculty:userFaculties
+
+
+                Set<Faculty> userFaculties=retrievedUser.getFaculties();
+                for (Faculty eachUserFaculty:userFaculties
                      ) {
-                    if(eachUserFaculty.getFaculty().getFacultyId().equals(retrievedFaculty.getFacultyId())){
-                        faculty=eachUserFaculty.getFaculty();
+                    if(eachUserFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())){
+                        faculty=eachUserFaculty;
                     }
                 }
 
-            }
 
-            }
+
+
 
             List<Category> categories=faculty.getCategoryList();
             if(!categories.isEmpty()) {
@@ -236,118 +229,107 @@ public class ExamServiceImpl implements ExamService {
         Category retrievedCategory =this.queryHelper.getCategoryMethod(catId);
         Course retrievedCourse =this.queryHelper.getCourseMethod(courseId);
         Exam retrievedExam=this.queryHelper.getExamMethod(examId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
         Exam updatedExam=new Exam();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("teacher")){
-                List<UserFaculty> userFaculties=retrievedUser.getUserFaculties();
-                for (UserFaculty eachUserFaculty:userFaculties
-                ) {
-                    if(eachUserFaculty.getFaculty().getFacultyId().equals(retrievedFaculty)){
-                        List<Category> categories=eachUserFaculty.getFaculty().getCategoryList();
-                        if(!categories.isEmpty()){
-                            for (Category eachCategory:categories
-                            ) {
-                                if(eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())){
-                                    List<Course> courses=eachCategory.getCourseList();
-                                    if(!courses.isEmpty()){
-                                        for (Course eachCourse:courses
-                                             ) {
-                                            if(eachCourse.getCourseId().equals(retrievedCourse.getCourseId())){
-                                                List<Exam> exams=eachCourse.getExams();
-                                                if(!exams.isEmpty()){
-                                                    for (Exam eachExam:exams
-                                                         ) {
-                                                        if(eachExam.getExamId().equals(retrievedExam.getExamId())){
-                                                         retrievedExam.setExamTitle(exam.getExamTitle());
-                                                         retrievedExam.setExamTotalMarks(exam.getExamTotalMarks());
-                                                         retrievedExam.setExamDesc(exam.getExamDesc());
-                                                         Course updatedCourse=exam.getCourse();
-                                                         if(updatedCourse!=null){
-                                                         if(eachCategory.getCategoryId().equals(updatedCourse.getCourseId())){
-                                                             retrievedExam.setCourse(updatedCourse);
-                                                         }
+        if(retrievedUser.getUserStatus().equals(UserStatus.approved)) {
+            Set<Faculty> userFaculties = retrievedUser.getFaculties();
+            for (Faculty eachUserFaculty : userFaculties
+            ) {
+                if (eachUserFaculty.getFacultyId().equals(retrievedFaculty)) {
+                    List<Category> categories = eachUserFaculty.getCategoryList();
+                    if (!categories.isEmpty()) {
+                        for (Category eachCategory : categories
+                        ) {
+                            if (eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())) {
+                                List<Course> courses = eachCategory.getCourseList();
+                                if (!courses.isEmpty()) {
+                                    for (Course eachCourse : courses
+                                    ) {
+                                        if (eachCourse.getCourseId().equals(retrievedCourse.getCourseId())) {
+                                            List<Exam> exams = eachCourse.getExams();
+                                            if (!exams.isEmpty()) {
+                                                for (Exam eachExam : exams
+                                                ) {
+                                                    if (eachExam.getExamId().equals(retrievedExam.getExamId())) {
+                                                        retrievedExam.setExamTitle(exam.getExamTitle());
+                                                        retrievedExam.setExamTotalMarks(exam.getExamTotalMarks());
+                                                        retrievedExam.setExamDesc(exam.getExamDesc());
+
+                                                        Boolean updatedStatus = exam.getExamStatus();
+                                                        if (updatedStatus == false) {
+                                                            retrievedExam.setExamStatus(updatedStatus);
+                                                        } else {
+                                                            retrievedExam.setExamStatus(Boolean.TRUE);
                                                         }
-                                                         Boolean updatedStatus=exam.getExamStatus();
-                                                         if(updatedStatus==false){
-                                                             retrievedExam.setExamStatus(updatedStatus);
-                                                         }else{
-                                                             retrievedExam.setExamStatus(Boolean.TRUE);
-                                                         }
-                                                         ExamHelper examHelper=new ExamHelper();
-                                                         if(examHelper.generateValidDate(exam.getExamStartedTime(),exam.getExamEndedTime())) {
+                                                        ExamHelper examHelper = new ExamHelper();
+                                                        if (examHelper.generateValidDate(exam.getExamStartedTime(), exam.getExamEndedTime())) {
 
-                                                             retrievedExam.setExamStartedTime(exam.getExamStartedTime());
-                                                             retrievedExam.setExamEndedTime(exam.getExamEndedTime());
-
-                                                         }
-                                                         Long examTime=examHelper.generateTotalExamTime(exam.getExamStartedTime(),exam.getExamEndedTime());
-                                                         if(examTime!=null){
-                                                             retrievedExam.setExamTimeLimit(examTime);
-                                                         }else{
-                                                             throw new Exception("Something went wrong!!!");
-                                                         }
-                                                         HelperClass helperClass=new HelperClass();
-                                                         List<Question> questions=examHelper.generateQuestion(helperClass.findAllQuestion(),exam.getExamQuestionDisplayLimit(),exam.getQuestionPattern());
-                                                          if(!questions.isEmpty()){
-                                                             List<ExamQuestion> examQuestions= exam.getExamquestions();
-                                                             if(!examQuestions.isEmpty()){
-                                                                 for (ExamQuestion eachExamQuestion:examQuestions
-                                                                      ) {
-                                                                     if(eachExamQuestion.getExam().getExamId().equals(eachExam.getExamId())){
-                                                                         for (Question eachQuestion:questions
-                                                                              ) {
-                                                                             eachExamQuestion.setQuestion(eachQuestion);
-
-                                                                         }
-                                                                         eachExamQuestion.setExam(eachExamQuestion.getExam());
-                                                                     }
-
-                                                                 }
-                                                                 retrievedExam.setExamquestions(examQuestions);
-                                                             }
-                                                             else{
-                                                                 throw new Exception("there is no examquestions for the given exam with id "+retrievedExam.getExamId());
-                                                             }
-
-                                                              int totalMarks=examHelper.generateTotalMarks(questions,exam.getExamQuestionDisplayLimit(),exam.getQuestionPattern());
-
-                                                              retrievedExam.setExamTotalMarks(totalMarks);
-                                                          }else {
-                                                              throw new Exception("Please select the appropriate question pattern");
-                                                          }
-                                                          updatedExam=this.examRepo.save(retrievedExam);
-
-
+                                                            retrievedExam.setExamStartedTime(exam.getExamStartedTime());
+                                                            retrievedExam.setExamEndedTime(exam.getExamEndedTime());
 
                                                         }
+                                                        Long examTime = examHelper.generateTotalExamTime(exam.getExamStartedTime(), exam.getExamEndedTime());
+                                                        if (examTime != null) {
+                                                            retrievedExam.setExamTimeLimit(examTime);
+                                                        } else {
+                                                            throw new Exception("Something went wrong!!!");
+                                                        }
+                                                        HelperClass helperClass = new HelperClass();
+                                                        List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestion(), exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
+                                                        if (!questions.isEmpty()) {
+                                                            List<ExamQuestion> examQuestions = exam.getExamquestions();
+                                                            if (!examQuestions.isEmpty()) {
+                                                                for (ExamQuestion eachExamQuestion : examQuestions
+                                                                ) {
+                                                                    if (eachExamQuestion.getExam().getExamId().equals(eachExam.getExamId())) {
+                                                                        for (Question eachQuestion : questions
+                                                                        ) {
+                                                                            eachExamQuestion.setQuestion(eachQuestion);
+
+                                                                        }
+                                                                        eachExamQuestion.setExam(eachExamQuestion.getExam());
+                                                                    }
+
+                                                                }
+                                                                retrievedExam.setExamquestions(examQuestions);
+                                                            } else {
+                                                                throw new Exception("there is no examquestions for the given exam with id " + retrievedExam.getExamId());
+                                                            }
+
+                                                            int totalMarks = examHelper.generateTotalMarks(questions, exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
+
+                                                            retrievedExam.setExamTotalMarks(totalMarks);
+                                                        } else {
+                                                            throw new Exception("Please select the appropriate question pattern");
+                                                        }
+                                                        updatedExam = this.examRepo.save(retrievedExam);
+
 
                                                     }
 
-                                                }else {
-                                                    throw new Exception("there is no exams for the given course with id "+eachCourse.getCourseId());
                                                 }
+
+                                            } else {
+                                                throw new Exception("there is no exams for the given course with id " + eachCourse.getCourseId());
                                             }
                                         }
-
-                                    }else {
-                                        throw new Exception("there is no courses for the given category with id "+eachCategory.getCategoryId());
                                     }
-                                }
 
+                                } else {
+                                    throw new Exception("there is no courses for the given category with id " + eachCategory.getCategoryId());
+                                }
                             }
 
-                        }else {
-                            throw new Exception("there is no categories for the given faculty with id "+eachUserFaculty.getFaculty().getFacultyId());
                         }
-                    }
 
+                    } else {
+                        throw new Exception("there is no categories for the given faculty with id " + eachUserFaculty.getFacultyId());
+                    }
                 }
 
-
             }
+        }
+        else {
+            throw new Exception("invalid user status for the update operation!!!!");
         }
 
 
@@ -355,7 +337,11 @@ public class ExamServiceImpl implements ExamService {
 
 
 
-        return retrievedExam;
+
+
+
+
+        return updatedExam;
     }
 
     @Override
@@ -370,26 +356,16 @@ public class ExamServiceImpl implements ExamService {
         if(exams==null){
             return resultExam;
         }else {
-            List<userRole> userRoles=retrieveduser.getUserRoles();
-            if(!userRoles.isEmpty()){
-                for (userRole eachUserRole:userRoles
-                     ) {
-                    Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                    if(role.getRoleName().equalsIgnoreCase("student")||role.getRoleName().equalsIgnoreCase("teacher")){
-                        List<UserFaculty> userFaculties=retrieveduser.getUserFaculties();
-                        for (UserFaculty eachUserFaculty:userFaculties
+
+                        Set<Faculty> userFaculties=retrieveduser.getFaculties();
+                        for (Faculty eachUserFaculty:userFaculties
                              ) {
-                            if(eachUserFaculty.getFaculty().getFacultyId().equals(retrievedFaculty.getFacultyId())){
-                                faculty=eachUserFaculty.getFaculty();
+                            if(eachUserFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())){
+                                faculty=eachUserFaculty;
                             }
                         }
-                    } else if (role.getRoleName().equalsIgnoreCase("admin")) {
-                        faculty=retrievedFaculty;
 
-                    }
-                    else {
-                        throw new Exception("Invalid role for the given user!!!");
-                    }
+
                     List<Category> categories=faculty.getCategoryList();
                     if(!categories.isEmpty()){
                         for (Category eachCategory:categories
@@ -408,13 +384,12 @@ public class ExamServiceImpl implements ExamService {
                         throw new Exception("there is no categories for the given faculty with id "+retrievedFaculty);
                     }
                 }
-            }
-            retrieveduser.getUserFaculties();
-        }
+
+            retrieveduser.getFaculties();
+
 
 
         return resultExam;
     }
 
 }
-*/

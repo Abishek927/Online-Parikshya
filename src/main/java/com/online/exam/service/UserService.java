@@ -10,11 +10,13 @@ import java.util.List;
 public interface UserService  {
 
 
-    UserDto createUser(UserDto userDto, Long facId, Long catId, Long courseId,Long roleId) throws Exception;
+    UserDto createUser(UserDto userDto, Long facId, Long catId, Long courseId) throws Exception;
 
     UserDto getUserByEmail(String email);
 
     String deleteUser(Long userId);
+
+    UserDto getUserDto(User user);
 
    // UserDto updateUser(Long userId,UserDto updatedUser) throws Exception;
     List<User> getAllUser();

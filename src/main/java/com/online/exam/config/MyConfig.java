@@ -1,5 +1,7 @@
 package com.online.exam.config;
 
+import com.online.exam.exception.JwtAccessDeniedHandler;
+import com.online.exam.exception.JwtAuthenticationEntryPoint;
 import com.online.exam.filter.JwtTokenAuthorizationFilter;
 import com.online.exam.security.CustomUserDetailService;
 import jakarta.persistence.Access;
@@ -24,16 +26,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 public class MyConfig {
-    private static final String[] PUBLIC_URLS={"/user/login"};
+    private static final String[] PUBLIC_URLS={"/user/login","/role/create","/role/**","/user/**"};
     @Autowired
     private CustomUserDetailService customUserDetailService;
     @Autowired
     private JwtTokenAuthorizationFilter jwtTokenAuthorizationFilter;
+    @Autowired
+    private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    @Bean
-    public ModelMapper modelMapper(){
-        return new ModelMapper();
-    }
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -41,9 +46,11 @@ public class MyConfig {
                 .cors().disable()
                 .authorizeHttpRequests()
                 .requestMatchers(PUBLIC_URLS).permitAll()
+
                 .anyRequest()
                 .authenticated().and()
                 .exceptionHandling()
+                .accessDeniedHandler(jwtAccessDeniedHandler)
                 .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)
                 .and()
                 .sessionManagement()

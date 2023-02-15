@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,6 +27,8 @@ public class Answer {
     private Date answerCreated;
     @Column(name="answer_status",nullable = false)
     private String answerStatus;
+
+
 
 
 

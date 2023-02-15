@@ -18,7 +18,7 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @PostMapping("/user/{userId}/faculty/{facultyId}/category/create")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('manage_category')")
     ResponseEntity<?> createCategoryController(@PathVariable("userId")Long userId, @PathVariable("facultyId")Long facultyId, @RequestBody CategoryDto categoryDto) throws Exception {
         CategoryDto resultCategoryDto=this.categoryService.createCategory(userId,facultyId,categoryDto);
         if(resultCategoryDto.equals(null)){

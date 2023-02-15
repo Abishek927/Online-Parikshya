@@ -20,7 +20,8 @@ public class UserDto {
     private String userName;
     private String userEmail;
     private String userPassword;
-    private String userRollNo;
+    private Long userRollNo;
+    private boolean enabled;
     private String userContactNumber;
     private String userGender;
     @Enumerated(EnumType.STRING)

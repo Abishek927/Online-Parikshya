@@ -1,16 +1,21 @@
 package com.online.exam.security;
 
+import com.online.exam.dto.AuthorityDto;
 import com.online.exam.dto.RoleDto;
 import com.online.exam.dto.UserDto;
+import com.online.exam.model.Authority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.HashSet;
+
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 public class UserPrincipal implements UserDetails {
     @Autowired
@@ -23,11 +28,12 @@ public class UserPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<RoleDto> roleDtos=this.userDto.getRoleDtoSet();
-        Set<SimpleGrantedAuthority> authorities=new HashSet<>();
-        for (RoleDto eachRole:roleDtos
-             ) {
-            authorities.addAll(eachRole.getAuthoritySet().stream().map(authorityDto -> new SimpleGrantedAuthority(authorityDto.getName())).collect(Collectors.toSet()));
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+        for (RoleDto role : roleDtos) {
+            authorities.addAll(role.getAuthoritySet().stream().map(a -> new SimpleGrantedAuthority(a.getName()))
+                    .collect(Collectors.toSet()));
         }
+
         return authorities;
     }
 

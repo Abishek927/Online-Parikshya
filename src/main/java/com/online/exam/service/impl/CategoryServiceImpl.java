@@ -1,6 +1,8 @@
 package com.online.exam.service.impl;
 
+import ch.qos.logback.core.util.DelayStrategy;
 import com.online.exam.dto.CategoryDto;
+import com.online.exam.dto.FacultyDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.model.Category;
@@ -35,54 +37,97 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
      public CategoryDto createCategory(Long userId, Long facultyId, CategoryDto categoryDto) throws Exception {
+        CategoryDto categoryDto1=new CategoryDto();
 
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
-        Category retrievedCategory=this.categoryRepo.findByCategoryName(categoryDto.getCategoryName());
+        Category resultCategory=new Category();
 
-            Set<Faculty> Faculties=user.getFaculties();
-            for (Faculty eachFaculty:Faculties
-                 ) {
-                Faculty faculty1=eachFaculty;
-                if(faculty1.getFacultyId().equals(faculty.getFacultyId())){
-                    List<Category> categories=faculty1.getCategoryList();
-                    for (Category eachCategory:categories
-                         ) {
-                        if(eachCategory.getCategoryName().equalsIgnoreCase(categoryDto.getCategoryName())){
-                            throw new Exception("Category with the given name already exist in given faculty!!!!");
-                        }else{
-
-
-
-                            Category category=this.modelMapper.map(categoryDto,Category.class);
-
-
-                                    category.setFaculty(faculty);
-
-                                    retrievedCategory=this.categoryRepo.save(category);
-
-
-
-
-
-
-
-
-
-                        }
-
-                    }
-
-
+    Set<Faculty> Faculties = user.getFaculties();
+    for (Faculty eachFaculty : Faculties
+    ) {
+        Faculty faculty1 = eachFaculty;
+        if (faculty1.getFacultyId().equals(faculty.getFacultyId())) {
+            List<Category> categories = faculty1.getCategoryList();
+            for (Category eachCategory : categories
+            ) {
+                if(eachCategory.getCategoryName().equals(categoryDto.getCategoryName())){
+                    throw new Exception("category with the given name already exist in the given faculty with id "+facultyId);
                 }
+            }
+            Category category = new Category();
+            category.setCategoryName(categoryDto.getCategoryName());
 
 
+            category.setFaculty(faculty);
 
+            resultCategory = this.categoryRepo.save(category);
+            categoryDto1.setCategoryId(resultCategory.getCategoryId());
+            categoryDto1.setCategoryName(resultCategory.getCategoryName());
 
 
         }
+    }
 
-        return this.modelMapper.map(retrievedCategory,CategoryDto.class);
+
+        return categoryDto1;
+    }
+
+    @Override
+    public CategoryDto updateCategory(Long userId, Long facId, Long catId, CategoryDto categoryDto) throws Exception {
+        CategoryDto  categoryDto1=new CategoryDto();
+        User retrievedUser=this.queryHelper.getUserMethod(userId);
+        Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facId);
+        Category retrievedCategory=this.queryHelper.getCategoryMethod(catId);
+        Set<Faculty> faculties=retrievedUser.getFaculties();
+        if(!faculties.isEmpty()){
+            for (Faculty eachFaculty:faculties
+                 ) {
+                if(eachFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())){
+                    List<Category> categories=eachFaculty.getCategoryList();
+                    if(!categories.isEmpty()){
+                        for (Category eachCategory:categories
+                             ) {
+                            if(eachCategory.getCategoryId().equals(catId)){
+                                if(categoryDto.getCategoryName()!=null){
+                                    retrievedCategory.setCategoryName(categoryDto.getCategoryName());
+                                }
+                                if(categoryDto.getFacultyDto()!=null){
+                                    FacultyDto facultyDto =categoryDto.getFacultyDto();
+                                    Faculty resultFaculty=this.modelMapper.map(facultyDto,Faculty.class);
+                                    for (Faculty eachFaculty1:faculties
+                                         ) {
+                                        if(eachFaculty1.getFacultyName().equals(facultyDto.getFacultyName())){
+                                            retrievedCategory.setFaculty(resultFaculty);
+                                        }
+
+                                    }
+
+
+
+                                }
+                                Category resultCategory=this.categoryRepo.save(retrievedCategory);
+                                Faculty faculty=resultCategory.getFaculty();
+                                FacultyDto facultyDto=this.modelMapper.map(faculty,FacultyDto.class);
+                                categoryDto1.setCategoryName(resultCategory.getCategoryName());
+                                categoryDto1.setCategoryId(resultCategory.getCategoryId());
+                                categoryDto1.setFacultyDto(facultyDto);
+                                return categoryDto1;
+
+                            }
+                        }
+
+                    }else {
+                        throw new Exception("there is no category for the given faculty with id "+eachFaculty.getFacultyId());
+                    }
+                }
+            }
+
+        }else {
+            throw new Exception("there is no faculties for the given user!!!");
+        }
+
+        return null;
     }
 
     @Override
@@ -91,6 +136,7 @@ public class CategoryServiceImpl implements CategoryService {
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
         Category category=this.categoryRepo.findByCategoryName(catName);
+        if(category!=null){
 
                 Set<Faculty> userFaculties=user.getFaculties();
                 if(userFaculties.isEmpty()){
@@ -124,6 +170,9 @@ public class CategoryServiceImpl implements CategoryService {
 
                     }
                 }
+        }else {
+            return message="there is no category with the given name!!!";
+        }
 
 
 

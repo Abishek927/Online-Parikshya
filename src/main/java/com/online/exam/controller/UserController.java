@@ -3,9 +3,8 @@ package com.online.exam.controller;
 import com.online.exam.dto.UserDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.helper.JwtHelper;
-import com.online.exam.model.Role;
-import com.online.exam.model.User;
 import com.online.exam.model.UserStatus;
+import com.online.exam.security.CustomUserDetailService;
 import com.online.exam.security.UserPrincipal;
 import com.online.exam.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +14,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -26,22 +29,23 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
-
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
     private JwtHelper jwtHelper;
+    @Autowired
+    private CustomUserDetailService customUserDetailService;
 
 
 
-    @PostMapping("/fac/{facId}/cat/{catId}/course/{courseId}/role/{roleId}/create")
-    ResponseEntity<UserDto> createUser(@PathVariable Long facId,@PathVariable("catId")Long catId,@PathVariable Long courseId,@PathVariable Long roleId,@RequestBody UserDto userDto) throws Exception {
+    @PostMapping("/fac/{facId}/cat/{catId}/course/{courseId}/create")
+    ResponseEntity<UserDto> createUser(@PathVariable Long facId,@PathVariable("catId")Long catId,@PathVariable Long courseId,@RequestBody UserDto userDto) throws Exception {
 
 
 
 
 
-        UserDto resultUser=this.userService.createUser(userDto,facId,catId,courseId,roleId);
+        UserDto resultUser=this.userService.createUser(userDto,facId,catId,courseId);
         return new ResponseEntity<UserDto>(resultUser,HttpStatusCode.valueOf(200));
     }
 
@@ -113,8 +117,12 @@ public class UserController {
 
     @PostMapping(path = "/login",consumes = {MediaType.APPLICATION_JSON_VALUE},produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<UserDto> login(@RequestBody UserDto userDto) throws Exception {
-        this.authenticate(userDto.getUserEmail(),userDto.getUserPassword());
-        UserDto user=this.userService.getUserByEmail(userDto.getUserEmail());
+        String userName= userDto.getUserEmail();
+        String password=userDto.getUserPassword();
+        UserDetails userDetails=this.customUserDetailService.loadUserByUsername(userName);
+
+        this.authenticate(userName,password,userDetails.getAuthorities());
+        UserDto user = this.userService.getUserByEmail(userDto.getUserEmail());
         if(user.getUserStatus().equals(UserStatus.approved)) {
             user.setUserPassword(null);
             String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user));
@@ -127,8 +135,13 @@ public class UserController {
 
     }
 
-    private void authenticate(String userEmail, String userPassword) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userEmail,userPassword));
+    private void authenticate(String userName, String password, Collection<? extends GrantedAuthority> authorities) throws Exception {
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken=new UsernamePasswordAuthenticationToken(userName,password,authorities);
+        try{
+            this.authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        }catch (DisabledException e){
+            throw new Exception("user is disabled!!!");
+        }
     }
 
 

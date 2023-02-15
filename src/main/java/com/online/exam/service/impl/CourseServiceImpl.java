@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -168,13 +169,20 @@ public class CourseServiceImpl implements CourseService {
                                                 retrievedCourse.setCourseDesc(courseDto.getCourseDesc());
                                                 CategoryDto updateCat= courseDto.getCategoryDto();
                                                 if(updateCat!=null) {
-                                                    if (updateCat.getCategoryId().equals(eachCategory.getCategoryId())) {
+                                                    List<Category> categories1=faculty.getCategoryList();
+                                                    for (Category eachCat:categories1
+                                                         ) {
+                                                        if(eachCat.getCategoryId().equals(updateCat.getCategoryId())){
+                                                            retrievedCourse.setCategory(this.modelMapper.map(courseDto.getCategoryDto(),Category.class));
+                                                        }else {
+                                                            retrievedCourse.setCategory(eachCategory);
+
+                                                        }
 
 
-                                                        retrievedCourse.setCategory(this.modelMapper.map(courseDto.getCategoryDto(),Category.class));
+
+
                                                     }
-                                                }else {
-                                                    retrievedCourse.setCategory(eachCategory);
                                                 }
                                                 retrievedCourse=this.courseRepo.save(retrievedCourse);
 
@@ -192,29 +200,19 @@ public class CourseServiceImpl implements CourseService {
                             }
 
                         }
-
-
-
-
-
-
-
-        return this.modelMapper.map(retrievedCourse,CourseDto.class);
+                        return this.modelMapper.map(retrievedCourse,CourseDto.class);
     }
 
     @Override
     public List<CourseDto> getCoursesByCategory(Long userId, Long facultyId, Long categoryId) throws Exception {
         List<Course> retrievedCourse=new ArrayList<>();
+        List<CourseDto> courseDtos=null;
         User user=this.queryHelper.getUserMethod(userId);
        Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
        Category category=this.queryHelper.getCategoryMethod(categoryId);
        List<Course> courses=category.getCourseList();
        if(!courses.isEmpty()){
-           List<userRole> userRoles=user.getUserRoles();
-           for (userRole eachUserRole:userRoles
-                ) {
-               Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-               if(role.getRoleName().equalsIgnoreCase("admin")||role.getRoleName().equalsIgnoreCase("teacher")||role.getRoleName().equalsIgnoreCase("student")){
+
                    Set<Faculty> userFaculties=user.getFaculties();
                    if(!userFaculties.isEmpty()){
                        for (Faculty eachUserFaculty:userFaculties
@@ -227,6 +225,7 @@ public class CourseServiceImpl implements CourseService {
                                     ) {
                                    if(eachCategory.getCategoryId().equals(categoryId)){
                                        retrievedCourse=this.courseRepo.findByCategory(category);
+                                      courseDtos=retrievedCourse.stream().map(course -> this.modelMapper.map(course,CourseDto.class)).collect(Collectors.toList());
                                    }
                                }
                            }
@@ -236,15 +235,15 @@ public class CourseServiceImpl implements CourseService {
                    }else{
                        throw new Exception("there is empty userfaculties for the given user!!!");
                    }
+
+
+
                }
 
 
-               }
-
-           }
 
 
-        return retrievedCourse;
+        return courseDtos;
     }
 
 

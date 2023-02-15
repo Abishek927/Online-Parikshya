@@ -1,6 +1,6 @@
-/*
 package com.online.exam.service.impl;
 
+import com.online.exam.dto.FacultyDto;
 import com.online.exam.exception.ResourceNotFoundException;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
@@ -8,11 +8,14 @@ import com.online.exam.repo.FacultyRepo;
 import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.FacultyService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class FacultyServiceImpl implements FacultyService {
@@ -21,71 +24,70 @@ public class FacultyServiceImpl implements FacultyService {
     @Autowired
     private RoleRepo roleRepo;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
 
     @Autowired
     private QueryHelper queryHelper;
     @Override
-    public Faculty createFaculty(Long userId,Faculty faculty) throws Exception {
+    public FacultyDto createFaculty(Long userId, FacultyDto facultyDto) throws Exception {
 
         User retrievedUser=queryHelper.getUserMethod(userId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
-        Faculty retrievedFaculty=this.facultyRepo.findByFacultyName(faculty.getFacultyName());
+
+        Faculty retrievedFaculty=this.facultyRepo.findByFacultyName(facultyDto.getFacultyName());
         if(retrievedFaculty!=null){
-            throw new Exception("Faculty with the given faculty name "+faculty.getFacultyName()+"already exists!!");
+            throw new Exception("Faculty with the given faculty name "+facultyDto.getFacultyName()+"already exists!!");
         }
         else{
-            for (userRole eachUserRole:userRoles
-                 ) {
-                Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                if(role==null){
-                    throw new Exception("there is no role registered with the given role name!!");
-                }
-                else{
-                    if(role.getRoleName().equalsIgnoreCase("admin")){
-                        List<UserFaculty> userFaculties=new ArrayList<>();
-                        UserFaculty userFaculty=new UserFaculty();
-                        userFaculty.setUser(retrievedUser);
-                        userFaculty.setFaculty(faculty);
-                        userFaculties.add(userFaculty);
-                        faculty.setUserFaculties(userFaculties);
+                        retrievedFaculty=this.modelMapper.map(facultyDto,Faculty.class);
 
-                        retrievedFaculty=this.facultyRepo.save(faculty);
+                        retrievedUser.getFaculties().add(retrievedFaculty);
+                        retrievedFaculty.setUsers(Set.of(retrievedUser));
+
+
+
+                        retrievedFaculty=this.facultyRepo.save(retrievedFaculty);
 
                     }
-                }
-            }
-        }
 
 
-        return retrievedFaculty;
+
+
+
+        return this.modelMapper.map(retrievedFaculty,FacultyDto.class);
     }
 
     @Override
     public String deleteFaculty(Long userId,String facultyName) {
         User retrievedUser=this.queryHelper.getUserMethod(userId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
+
         Faculty faculty=this.facultyRepo.findByFacultyName(facultyName);
         if(faculty==null){
             return "there is no faculty exist with the given name";
         }else{
-            for (userRole eachUserRole:userRoles
-                 ) {
-                Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-                if(role.getRoleName().equalsIgnoreCase("admin")){
-                    List<UserFaculty> userFaculties=faculty.getUserFaculties();
-                    for (UserFaculty eachUserFaculty:userFaculties
-                         ) {
-                        eachUserFaculty.setFaculty(null);
-                        eachUserFaculty.setUser(null);
-
-                        this.facultyRepo.deleteById(faculty.getFacultyId());
-
-                    }
+           Set<Faculty> faculties=retrievedUser.getFaculties();
+           if(!faculties.isEmpty()) {
+               for (Faculty eachFaculty:faculties
+                    ) {
+                   if(eachFaculty.getFacultyId().equals(faculty.getFacultyId())){
+                       //eachFaculty.getUsers().remove(retrievedUser);
+                       this.facultyRepo.deleteById(faculty.getFacultyId());
+               }
+           }
 
 
-                }
+
+
+
+
+
+
 
             }
+           else{
+               return "there is no faculty created by the given user with id "+retrievedUser.getUserId();
+           }
 
         }
 
@@ -94,58 +96,90 @@ public class FacultyServiceImpl implements FacultyService {
     }
 
     @Override
-    public Faculty updateFaculty(Long userId, Long facultyId, Faculty faculty) {
-        Faculty updatedFaculty=new Faculty();
+    public FacultyDto updateFaculty(Long userId, Long facultyId, FacultyDto facultyDto) throws Exception {
+        FacultyDto facultyDto1=new FacultyDto();
         User retrievedUser=this.queryHelper.getUserMethod(userId);
         Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facultyId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("admin")){
-                retrievedFaculty.setFacultyName(faculty.getFacultyName());
-                retrievedFaculty.setFacultyDesc(faculty.getFacultyDesc());
-               updatedFaculty =this.facultyRepo.save(retrievedFaculty);
+        Set<Faculty> faculties=retrievedUser.getFaculties();
+        if(!faculties.isEmpty()){
+            for (Faculty eachFaculty:faculties
+                 ) {
+                if(eachFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())){
+                    if(facultyDto.getFacultyName()!=null) {
+                        retrievedFaculty.setFacultyName(facultyDto.getFacultyName());
+                    }
+                    if(facultyDto.getFacultyDesc()!=null) {
+                        retrievedFaculty.setFacultyDesc(facultyDto.getFacultyDesc());
+                    }
+                     Faculty faculty=this.facultyRepo.save(retrievedFaculty);
+                     facultyDto1.setFacultyId(faculty.getFacultyId());
+                     facultyDto1.setFacultyName(faculty.getFacultyName());
+                     facultyDto1.setFacultyDesc(faculty.getFacultyDesc());
+
+                }
             }
 
+        }else {
+            throw new Exception("there is no faculties created by the given user!!!");
         }
 
 
 
-        return updatedFaculty;
+
+
+
+
+
+
+
+        return facultyDto1;
     }
 
     @Override
-    public Faculty getFacultyByName(Long userId, String name) {
-        Faculty resultFaculty=new Faculty();
-        User retrievedUser=this.queryHelper.getUserMethod(userId);
-       List<userRole>userRoles= retrievedUser.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("admin")||role.getRoleName().equalsIgnoreCase("tacher")||role.getRoleName().equals("student")){
-                 resultFaculty=this.facultyRepo.findByFacultyName(name);
-            }
+    public FacultyDto getFacultyByName(Long userId, String name) {
+        FacultyDto resultDto=new FacultyDto();
 
+        User retrievedUser=this.queryHelper.getUserMethod(userId);
+        Faculty resultFaculty=this.facultyRepo.findByFacultyName(name);
+        Set<Faculty> faculties=retrievedUser.getFaculties();
+        if(!faculties.isEmpty()){
+            for (Faculty eachFaculty:faculties
+                 ) {
+                if(eachFaculty.getFacultyId().equals(resultFaculty.getFacultyId())){
+                    if(resultFaculty!=null) {
+                        resultDto.setFacultyId(resultFaculty.getFacultyId());
+                        resultDto.setFacultyName(resultFaculty.getFacultyName());
+                        resultDto.setFacultyDesc(resultFaculty.getFacultyDesc());
+
+
+                    }
+                    else {
+                        return null;
+                    }
+                    }
+            }
         }
 
-        return resultFaculty;
+
+
+
+
+
+
+        return resultDto;
     }
 
     @Override
-    public List<Faculty> getFacultyByUser(Long userId) {
-        List<Faculty> faculties=new ArrayList<>();
+    public List<FacultyDto> getAllFaculty(Long userId) {
         User retrievedUser=this.queryHelper.getUserMethod(userId);
-        List<userRole> userRoles=retrievedUser.getUserRoles();
-        for (userRole eachUserRole:userRoles
-             ) {
-            Role role=this.roleRepo.findByRoleName(eachUserRole.getRole().getRoleName());
-            if(role.getRoleName().equalsIgnoreCase("admin")){
-               faculties=this.facultyRepo.findAll();
-            }
-
+        Set<Faculty> faculties=retrievedUser.getFaculties();
+        if(!faculties.isEmpty()){
+            return faculties.stream().map(faculty -> this.modelMapper.map(faculty,FacultyDto.class)).collect(Collectors.toList());
         }
-        return faculties;
+
+
+        return null;
     }
+
+
 }
-*/

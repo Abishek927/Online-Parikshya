@@ -1,9 +1,6 @@
 package com.online.exam.service.impl;
 
-import com.online.exam.dto.CategoryDto;
-import com.online.exam.dto.FacultyDto;
-import com.online.exam.dto.RoleDto;
-import com.online.exam.dto.UserDto;
+import com.online.exam.dto.*;
 import com.online.exam.exception.ResourceNotFoundException;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
@@ -22,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
@@ -56,9 +54,12 @@ public class UserServiceImpl implements UserService {
     private FacultyRepo facultyRepo;
 
 
+    private PasswordEncoder passwordEncoder;
+
+
 
     @Override
-    public UserDto createUser(UserDto userDto, Long facId, Long catId, Long courseId,Long roleId) throws Exception {
+    public UserDto createUser(UserDto userDto, Long facId, Long catId, Long courseId) throws Exception {
         if(checkIfUserNameExists(userDto)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User Name already Exists");
         }
@@ -66,15 +67,22 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User email id already exists");
         }
         Role retrievedRole=null;
-        Set< RoleDto> roleDtoSet =userDto.getRoleDtoSet();
+        Set<RoleDto> roleDtoSet=userDto.getRoleDtoSet();
         if(!roleDtoSet.isEmpty()){
             for (RoleDto eachRoleDto:roleDtoSet
                  ) {
-                retrievedRole=this.roleRepo.findByRoleName(eachRoleDto.getName());
+                 retrievedRole=this.roleRepo.findByRoleName(eachRoleDto.getName());
+                if(retrievedRole==null){
+                    throw new Exception("Please select the valid role");
+                }
+
             }
-        }else{
-            throw new Exception("Please select a valid role!!!");
         }
+        else {
+            throw new Exception("Please select a valid role");
+        }
+
+
 
         User user=new User();
         this.modelMapper.map(userDto,user);
@@ -88,16 +96,17 @@ public class UserServiceImpl implements UserService {
 
 
 
-         Faculty faculty = this.queryHelper.getFacultyMethod(facId);
 
-         Category category = queryHelper.getCategoryMethod(catId);
-         Course course = this.queryHelper.getCourseMethod(courseId);
 
 
 
 
 
                         if (retrievedRole.getRoleName().equals("ROLE_STUDENT")) {
+                            Faculty faculty = this.queryHelper.getFacultyMethod(facId);
+
+                            Category category = queryHelper.getCategoryMethod(catId);
+                            Course course = this.queryHelper.getCourseMethod(courseId);
                             if (catId > 0 && facId > 0 && courseId > 0) {
 
 
@@ -143,6 +152,11 @@ public class UserServiceImpl implements UserService {
                                 throw new Exception("Please select the valid faculty and category!!!!");
                             }
                         } else if (retrievedRole.getRoleName().equals("ROLE_TEACHER")) {
+                            Faculty faculty = this.queryHelper.getFacultyMethod(facId);
+
+                            Category category = queryHelper.getCategoryMethod(catId);
+                            Course course = this.queryHelper.getCourseMethod(courseId);
+
                             if (catId > 0 && facId > 0 && courseId>0 ) {
 
 
@@ -172,7 +186,7 @@ public class UserServiceImpl implements UserService {
                                                 }
 
                                             }else {
-
+                                                throw new Exception("there is no courses for the given category");
                                             }
 
 
@@ -192,6 +206,8 @@ public class UserServiceImpl implements UserService {
                                     user.setUserGender(null);
                                     user.setUserDateOfBirth(null);
                                     user.setUserContactNumber(null);
+                                    user.setUserStatus(UserStatus.approved);
+                                    user.setIsEnabled(Boolean.TRUE);
 
                                 }
 
@@ -200,6 +216,7 @@ public class UserServiceImpl implements UserService {
                         }
 
 
+                        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
                         Set<Role> roles=new HashSet<>();
                         roles.add(retrievedRole);
                         user.setUserRoles(roles);
@@ -228,9 +245,9 @@ public class UserServiceImpl implements UserService {
         if(retrievedUser==null){
             throw new ResourceNotFoundException("user","email "+email,null);
         }
+        UserDto  userDto=this.getUserDto(retrievedUser);
 
-
-        return this.modelMapper.map(retrievedUser,UserDto.class);
+        return userDto;
     }
 
     @Override
@@ -393,7 +410,34 @@ return message;
     }*/
 
 
+    public UserDto getUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setUserEmail(user.getUserEmail());
+        userDto.setEnabled(user.getIsEnabled());
+        userDto.setUserName(user.getUserName());
+        userDto.setUserId(user.getUserId());
+        userDto.setUserStatus(user.getUserStatus());
+        userDto.setUserGender(user.getUserGender());
+        userDto.setUserRollNo(user.getUserRollNo());
+        userDto.setUserPassword(user.getUserPassword());
 
+        Set<RoleDto> rSet = new HashSet<>();
+        for(Role r : user.getUserRoles()) {
+            RoleDto rDto = new RoleDto();
+            rDto.setName(r.getRoleName());
+            Set<AuthorityDto> aSet = new HashSet<>();
+
+            for(Authority a : r.getAuthorities()) {
+                AuthorityDto aDto = new AuthorityDto(a.getAuthorityName());
+                aSet.add(aDto);
+            }
+            rDto.setAuthoritySet(aSet);
+            rSet.add(rDto);
+        }
+        userDto.setRoleDtoSet(rSet);
+
+        return userDto;
+    }
 
 
 

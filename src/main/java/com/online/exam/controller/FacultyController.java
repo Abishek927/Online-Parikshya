@@ -1,13 +1,14 @@
-/*
 package com.online.exam.controller;
 
+import com.online.exam.dto.FacultyDto;
 import com.online.exam.helper.ApiResponse;
-import com.online.exam.model.Faculty;
+
 
 import com.online.exam.service.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,9 +19,10 @@ public class FacultyController {
     @Autowired
     private FacultyService facultyService;
     @PostMapping("/user/{userId}/faculty/create")
-    ResponseEntity<?> createFacultyController(@PathVariable("userId")Long userId,@RequestBody Faculty faculty) throws Exception {
+    @PreAuthorize("hasAuthority('manage_faculty')")
+    ResponseEntity<?> createFacultyController(@PathVariable("userId")Long userId,@RequestBody FacultyDto faculty) throws Exception {
 
-        Faculty resultFaculty=this.facultyService.createFaculty(userId,faculty);
+        FacultyDto resultFaculty=this.facultyService.createFaculty(userId,faculty);
         if(resultFaculty==null){
             return new ResponseEntity<>(new ApiResponse("faculty creation is failed!!Something went wrong!!",false), HttpStatusCode.valueOf(500));
         }
@@ -29,17 +31,19 @@ public class FacultyController {
     }
 
     @DeleteMapping("/user/{userId}/faculty/delete")
+    @PreAuthorize("hasAuthority('manage_faculty')")
     ResponseEntity<ApiResponse> deleteFacultyController(@PathVariable("userId")Long userId,@RequestParam("facultyName")String facultyName){
         String responseMessage=this.facultyService.deleteFaculty(userId,facultyName);
         if(responseMessage.contains("successfully")){
             return new ResponseEntity<>(new ApiResponse(responseMessage,true),HttpStatusCode.valueOf(200));
         }
-        return new ResponseEntity<>(new ApiResponse(responseMessage,false),HttpStatusCode.valueOf(500));
+        return new ResponseEntity<>(new ApiResponse(responseMessage,false),HttpStatusCode.valueOf(200));
     }
 
     @PutMapping("/user/{userId}/faculty/update/{facultyId}")
-    ResponseEntity<?> updateFacultyController(@PathVariable("userId")Long userId,@PathVariable("facultyId")Long facultyId,@RequestBody Faculty faculty){
-        Faculty updateFaculty=this.facultyService.updateFaculty(userId,facultyId,faculty);
+    @PreAuthorize("hasAuthority('manage_faculty')")
+    ResponseEntity<?> updateFacultyController(@PathVariable("userId")Long userId,@PathVariable("facultyId")Long facultyId,@RequestBody FacultyDto faculty) throws Exception {
+        FacultyDto updateFaculty=this.facultyService.updateFaculty(userId,facultyId,faculty);
         if(updateFaculty.equals(null)) {
             return new ResponseEntity<>(new ApiResponse("Something went wrong!!", false), HttpStatusCode.valueOf(500));
         }
@@ -47,8 +51,9 @@ public class FacultyController {
     }
 
     @GetMapping("/user/{userId}/faculty/read")
+    @PreAuthorize("hasAuthority('manage_faculty')")
     ResponseEntity<?> getFacultyByNameController(@PathVariable("userId")Long userId,@RequestParam("facultyName")String facultyName){
-        Faculty facultyByName=this.facultyService.getFacultyByName(userId,facultyName);
+        FacultyDto facultyByName=this.facultyService.getFacultyByName(userId,facultyName);
         if(facultyByName.equals(null)){
             return new ResponseEntity<>(new ApiResponse("there is no faculty with the given name",false),HttpStatusCode.valueOf(500));
 
@@ -56,15 +61,17 @@ public class FacultyController {
         return new ResponseEntity<>(facultyByName,HttpStatusCode.valueOf(200));
     }
 
-    @GetMapping("/user/{userId}/faculty/readByUser")
-    ResponseEntity<?> getFacultyByUser(@PathVariable("userId")Long userId){
-        List<Faculty> faculties =this.facultyService.getFacultyByUser(userId);
-        if(faculties.equals(null)){
-            return new ResponseEntity<>(new ApiResponse("there is no faculty created by the given user",false),HttpStatusCode.valueOf(500));
+    @GetMapping("/faculty/getAll")
+    @PreAuthorize("hasAuthority('manage_faculty')")
+    ResponseEntity<?> getAllFacultyController(@RequestParam("userId")Long userId){
+        List<FacultyDto> facultyDtos=this.facultyService.getAllFaculty(userId);
+        if(facultyDtos!=null){
+            return new ResponseEntity<>(facultyDtos,HttpStatusCode.valueOf(200));
         }
-        return new ResponseEntity<>(faculties,HttpStatusCode.valueOf(200));
+        return new ResponseEntity<>(new ApiResponse("there is no faculties!!!",false),HttpStatusCode.valueOf(200));
     }
 
 
+
+
 }
-*/
