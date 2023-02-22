@@ -14,7 +14,7 @@ import java.util.List;
 
 public class CourseDto {
     private Long courseId;
-    private String courseName;
+    private String courseTitle;
     private String courseDesc;
     private CategoryDto categoryDto;
     private List<Exam> exams;

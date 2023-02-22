@@ -1,6 +1,6 @@
 package com.online.exam.service;
 
-import com.online.exam.model.Exam;
+
 import com.online.exam.model.Question;
 
 import java.util.List;

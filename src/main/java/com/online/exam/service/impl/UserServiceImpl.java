@@ -9,7 +9,7 @@ import com.online.exam.repo.FacultyRepo;
 import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.CategoryRepo;
 import com.online.exam.repo.UserRepo;
-import com.online.exam.security.UserPrincipal;
+
 import com.online.exam.service.UserService;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private FacultyRepo facultyRepo;
 
-
+@Autowired
     private PasswordEncoder passwordEncoder;
 
 
@@ -120,15 +120,17 @@ public class UserServiceImpl implements UserService {
                                                 for (Course eachCourse : courses
                                                 ) {
                                                     if (eachCourse.getCourseId().equals(course.getCourseId())) {
-                                                        Set<Faculty>faculties=new HashSet<>();
-                                                        faculties.add(faculty);
 
 
 
 
-                                                        user.setCategory(category);
-                                                        user.setCourse(course);
-                                                        user.setFaculties(faculties);
+
+                                                        user.setCategories(Set.of(category));
+                                                        category.getUsers().add(user);
+                                                        user.setCourses(Set.of(course));
+                                                        course.getUsers().add(user);
+                                                        user.setFaculties(Set.of(faculty));
+                                                        faculty.getUsers().add(user);
                                                         user.setUserStatus(UserStatus.pending);
                                                     }
 
@@ -173,12 +175,14 @@ public class UserServiceImpl implements UserService {
                                                         user.setUserGender(null);
                                                         user.setUserRollNo(null);
                                                         user.setUserDateOfBirth(null);
-                                                        user.setCourse(eachCourse);
+                                                        user.setCourses(Set.of(eachCourse));
+                                                        course.getUsers().add(user);
 
-                                                        Set<Faculty>faculties=new HashSet<>();
-                                                        faculties.add(faculty);
-                                                        user.setFaculties(faculties);
-                                                        user.setCategory(category);
+
+                                                        user.setFaculties(Set.of(faculty));
+                                                        faculty.getUsers().add(user);
+                                                        user.setCategories(Set.of(category));
+                                                        category.getUsers().add(user);
                                                         user.setUserStatus(UserStatus.pending);
                                                     }
 
@@ -258,8 +262,8 @@ public class UserServiceImpl implements UserService {
       if(userStatus.equals(UserStatus.pending)||userStatus.equals(UserStatus.approved)){
           retrievedUser.setIsEnabled(Boolean.FALSE);
           retrievedUser.setFaculties(null);
-          retrievedUser.setCategory(null);
-          retrievedUser.setCourse(null);
+          retrievedUser.setCategories(null);
+          retrievedUser.setCourses(null);
           this.userRepo.deleteById(retrievedUser.getUserId());
           message="User deleted successfully";
           return message;

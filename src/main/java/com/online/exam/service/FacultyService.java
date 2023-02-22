@@ -1,8 +1,7 @@
 package com.online.exam.service;
 
 import com.online.exam.dto.FacultyDto;
-import com.online.exam.model.Faculty;
-import com.online.exam.model.Role;
+
 
 import java.util.List;
 

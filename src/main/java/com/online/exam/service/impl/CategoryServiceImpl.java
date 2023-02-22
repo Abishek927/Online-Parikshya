@@ -1,23 +1,22 @@
 package com.online.exam.service.impl;
 
-import ch.qos.logback.core.util.DelayStrategy;
+
 import com.online.exam.dto.CategoryDto;
+import com.online.exam.dto.CourseDto;
 import com.online.exam.dto.FacultyDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.model.Category;
-import com.online.exam.repo.FacultyRepo;
+
 import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.CategoryRepo;
-import com.online.exam.repo.UserRepo;
+
 import com.online.exam.service.CategoryService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +59,8 @@ public class CategoryServiceImpl implements CategoryService {
 
 
             category.setFaculty(faculty);
+            category.setUsers(Set.of(user));
+            user.getCategories().add(category);
 
             resultCategory = this.categoryRepo.save(category);
             categoryDto1.setCategoryId(resultCategory.getCategoryId());
@@ -131,11 +132,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public String deleteCategory(Long userId, Long facultyId, String catName) throws Exception {
+    public String deleteCategory(Long userId, Long facultyId,Long catId) throws Exception {
         String message="";
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
-        Category category=this.categoryRepo.findByCategoryName(catName);
+        Category category=this.queryHelper.getCategoryMethod(catId);
         if(category!=null){
 
                 Set<Faculty> userFaculties=user.getFaculties();
@@ -151,18 +152,19 @@ public class CategoryServiceImpl implements CategoryService {
                                  ) {
                                 if(eachCategory.getCategoryId().equals(category.getCategoryId())){
                                     List<Course> courses=category.getCourseList();
-                                    for (Course eachCourse:courses
-                                         ) {
-                                        eachCourse.setCategory(null);
-                                    }
-                                    List<User> users=category.getUsers();
-                                    for (User eachUser:users
-                                         ) {
-                                        eachUser.setCategory(null);
+                                    if(!courses.isEmpty()){
+                                        for (Course eachCourse:courses
+                                             ) {
+                                            eachCourse.setCategory(null);
+                                        }
 
                                     }
+                                    category.setUsers(null);
+                                    user.getCategories().remove(category);
+
                                     category.setFaculty(null);
-                                    this.categoryRepo.deleteById(category.getCategoryId());
+
+                                    this.categoryRepo.deleteById(catId);
                                     message="category deleted successfully";
                                 }
                             }
@@ -171,7 +173,7 @@ public class CategoryServiceImpl implements CategoryService {
                     }
                 }
         }else {
-            return message="there is no category with the given name!!!";
+            return message="there is no category with the given id "+catId;
         }
 
 
@@ -189,13 +191,56 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> readCategoryByFaculty(Long userId, Long facultyId) {
+    public List<CategoryDto> readCategoryByFaculty(Long userId, Long facultyId) throws Exception {
+
 
         List<Category> categories=new ArrayList<>();
         User user=queryHelper.getUserMethod(userId);
         Faculty faculty=queryHelper.getFacultyMethod(facultyId);
         categories=faculty.getCategoryList();
-        List<CategoryDto>categoryDtos=categories.stream().map(category -> this.modelMapper.map(category,CategoryDto.class)).collect(Collectors.toList());
+        Set<Faculty> faculties=user.getFaculties();
+        List<CategoryDto> categoryDtos=new ArrayList<>(faculties.size());
+        if(!faculties.isEmpty()) {
+
+            for (Faculty eachFaculty:faculties
+                 ) {
+                if (eachFaculty.getFacultyId().equals(facultyId)) {
+                    if (!categories.isEmpty()) {
+
+                        for (Category eachCat:categories
+                             ) {
+                            CategoryDto categoryDto=new CategoryDto();
+
+                            categoryDto.setCategoryId(eachCat.getCategoryId());
+                            categoryDto.setCategoryName(eachCat.getCategoryName());
+
+                            categoryDto.setFacultyDto(this.modelMapper.map(eachCat.getFaculty(),FacultyDto.class));
+                            List<Course> courses=eachCat.getCourseList();
+                            List<CourseDto> courseDtos=courses.stream().map(course -> this.modelMapper.map(course, CourseDto.class)).collect(Collectors.toList());
+                            categoryDto.setCourseDtos(courseDtos);
+
+                                categoryDtos.add(categoryDto);
+
+
+
+                        }
+
+
+
+
+
+
+
+                    } else {
+                        return null;
+                    }
+
+
+                }
+            }
+        }else {
+            throw new Exception("there is no faculties for the given user with id "+userId);
+        }
 
 
 
@@ -205,20 +250,37 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto readCategoryByName(Long userId,Long facultyId,String name) {
+    public CategoryDto readCategoryByName(Long userId,Long facultyId,Long catId) {
+        CategoryDto categoryDto=new CategoryDto();
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
-        Category category=this.categoryRepo.findByCategoryName(name);
+        Category category=this.queryHelper.getCategoryMethod(catId);
         List<Category> categories=faculty.getCategoryList();
-        for (Category eachCategory:categories
-             ) {
-            if(eachCategory.getCategoryId().equals(category.getCategoryId())){
+
+        Set<Faculty> faculties=user.getFaculties();
+        if(!faculties.isEmpty()) {
+            for (Faculty eachFaculty:faculties
+                 ) {
+
+                if (eachFaculty.getFacultyId().equals(facultyId)) {
+                    for (Category eachCategory : categories
+                    ) {
+                        if (eachCategory.getCategoryId().equals(category.getCategoryId())) {
+                            categoryDto.setCategoryId(category.getCategoryId());
+                            categoryDto.setCategoryName(category.getCategoryName());
+                            categoryDto.setFacultyDto(this.modelMapper.map(category.getFaculty(),FacultyDto.class));
+                            List<Course> courses=category.getCourseList();
+                            if(!courses.isEmpty()){
+                                categoryDto.setCourseDtos(courses.stream().map(course -> this.modelMapper.map(course,CourseDto.class)).collect(Collectors.toList()));
+                            }
 
 
-                        return this.modelMapper.map(category,CategoryDto.class);
+                            return categoryDto;
 
 
-
+                        }
+                    }
+                }
             }
         }
 

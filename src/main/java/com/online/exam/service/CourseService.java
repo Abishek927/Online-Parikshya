@@ -11,7 +11,9 @@ public interface CourseService {
     String deleteCourse(Long userId,Long facultyId,Long categoryId,Long courseId) throws Exception;
     CourseDto updateCourse(Long userId,Long facultyId,Long categoryId,Long courseId,CourseDto courseDto) throws Exception;
     List<CourseDto> getCoursesByCategory(Long userId, Long facultyId, Long categoryId) throws Exception;
-   // Course getCourseByName(Long userId,Long facultyId,Long categoryId,String name);
+    CourseDto getCourseById(Long userId,Long facultyId,Long categoryId,Long courseId) throws Exception;
+    List<CourseDto> getAllCourse(Long userId);
+
 
 
 

@@ -39,6 +39,9 @@ public class Question {
     @Column(name="question_marks",nullable = false)
     private int questionMarks;
 
+    @Column(name="deleted")
+    private Boolean deleted=Boolean.FALSE;
+
     @Enumerated(EnumType.ORDINAL)
     private AnswerChoice answerChoice;
 

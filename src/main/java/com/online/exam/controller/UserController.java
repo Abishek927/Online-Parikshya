@@ -77,14 +77,14 @@ public class UserController {
     }
 */
     @GetMapping("/approveUser/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('approve_user')")
     public ResponseEntity<ApiResponse> approveUserController(@PathVariable Long userId){
         String message=this.userService.approveUser(userId);
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
 
     }
     @GetMapping("/approveAll")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('approve_user')")
     public ResponseEntity<ApiResponse> approveAllUserController(){
         String message=this.userService.approveAllUser();
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));

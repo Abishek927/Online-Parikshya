@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 public class MyConfig {
-    private static final String[] PUBLIC_URLS={"/user/login","/role/create","/role/**","/user/**"};
+    private static final String[] PUBLIC_URLS={"/user/login","/role/**","/user/**"};
     @Autowired
     private CustomUserDetailService customUserDetailService;
     @Autowired
@@ -36,6 +36,8 @@ public class MyConfig {
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
 
@@ -61,16 +63,13 @@ public class MyConfig {
                 .build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
 
     @Bean
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(this.customUserDetailService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        authenticationProvider.setPasswordEncoder(this.passwordEncoder);
         return authenticationProvider;
     }
     @Bean

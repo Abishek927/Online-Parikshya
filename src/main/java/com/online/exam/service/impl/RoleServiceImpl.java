@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,10 +50,17 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleDto updateRole(RoleDto roleDto, Long roleId) throws Exception {
         Role role=this.roleRepo.findById(roleId).get();
-        Role retrievedRole=this.roleRepo.findByRoleName(roleDto.getName());
+        Role retrievedRole=new Role();
+        if(roleDto.getName()!=null) {
+            retrievedRole = this.roleRepo.findByRoleName(roleDto.getName());
+            if(retrievedRole.equals(null)){
+                role.setRoleName(roleDto.getName());
+            }
+        }
+        Set<AuthorityDto> authoritySet =roleDto.getAuthoritySet();
 
 
-            role.setRoleName(roleDto.getName());
+        if(!authoritySet.isEmpty()) {
             role.setAuthorities(roleDto.getAuthoritySet().stream().map(a -> {
                 Authority authority = authorityRepo.findByAuthorityName(a.getName());
                 if (authority == null) {
@@ -67,8 +75,14 @@ public class RoleServiceImpl implements RoleService {
                 return authority;
 
             }).collect(Collectors.toSet()));
+        }
+
+
             Role resultRole = roleRepo.save(role);
-            return modelMapper.map(resultRole, RoleDto.class);
+        RoleDto roleDto1=new RoleDto();
+        roleDto1.setName(resultRole.getRoleName());
+        roleDto1.setAuthoritySet(resultRole.getAuthorities().stream().map(authority -> this.modelMapper.map(authority,AuthorityDto.class)).collect(Collectors.toSet()));
+            return roleDto1;
 
 
     }

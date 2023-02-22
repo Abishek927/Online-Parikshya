@@ -12,6 +12,7 @@ import org.hibernate.annotations.Where;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,7 +20,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name="course_table")
-@SQLDelete(sql = "UPDATE course_table c set c.deleted=true where c.course_id=?")
+@SQLDelete(sql = "UPDATE course_table C set C.deleted=true where C.course_id=?")
 @Where(clause = "deleted=false")
 public class Course {
     @Id
@@ -35,9 +36,7 @@ public class Course {
     @Column(name = "deleted")
     private Boolean deleted=Boolean.FALSE;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "course")
-    @JsonManagedReference(value = "course_table")
-    private List<User> userList;
+
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "course")
     @JsonManagedReference(value = "course_table")
@@ -48,10 +47,8 @@ public class Course {
     @JsonBackReference(value = "category_table")
     private Category category;
 
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")
-    @JsonBackReference(value = "user_table")
-    private User user;
+    @ManyToMany(mappedBy = "courses")
+    private Set<User> users;
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "course")
     @JsonManagedReference(value = "course_table")

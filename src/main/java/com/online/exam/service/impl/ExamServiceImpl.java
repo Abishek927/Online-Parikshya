@@ -5,7 +5,7 @@ import com.online.exam.helper.HelperClass;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.repo.ExamRepo;
-import com.online.exam.repo.RoleRepo;
+
 import com.online.exam.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,7 @@ import java.util.Set;
 public class ExamServiceImpl implements ExamService {
     @Autowired
     private ExamRepo examRepo;
-    @Autowired
-    private RoleRepo roleRepo;
+
     @Autowired
     private QueryHelper queryHelper;
 

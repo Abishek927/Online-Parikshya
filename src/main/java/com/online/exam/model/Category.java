@@ -8,6 +8,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,7 +27,7 @@ public class Category {
     private Long categoryId;
     @Column(name="category_name",unique = true,nullable = false)
     private String categoryName;
-
+    @Column(name="deleted")
     private boolean deleted=Boolean.FALSE;
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "category")
@@ -38,8 +39,7 @@ public class Category {
     @JsonBackReference(value = "faculty_table")
     private Faculty faculty;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "category")
-    @JsonManagedReference(value = "category_table")
-    private List<User> users;
+    @ManyToMany(mappedBy = "categories")
+    private Set<User> users;
 
 }

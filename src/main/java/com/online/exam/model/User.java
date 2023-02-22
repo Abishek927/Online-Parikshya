@@ -67,10 +67,7 @@ private LocalDate userDateOfBirth;
     private List<ExamAttempt> examAttempts;
 
 
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name="course_id_fk",referencedColumnName = "course_id")
-    @JsonBackReference(value = "course_table")
-    private Course course;
+
 
 @ManyToMany(fetch = FetchType.EAGER)
 @JoinTable(
@@ -80,16 +77,21 @@ private LocalDate userDateOfBirth;
 )
 private Set<Faculty> faculties;
 
+@ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+@JoinTable(
+        name = "user_course",
+        joinColumns = @JoinColumn(name="user_id_fk",referencedColumnName = "user_id"),
+        inverseJoinColumns = @JoinColumn(name="course_id_fk",referencedColumnName = "course_id")
+)
+  private Set<Course> courses;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
-    @JsonManagedReference(value = "user_table")
-    private List<Course> courses;
-
-
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name = "cat_id_fk",referencedColumnName = "cat_id")
-    @JsonBackReference(value = "category_table")
-    private Category category;
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinTable(
+            name="user_category",
+            joinColumns = @JoinColumn(name="user_id_fk",referencedColumnName = "user_id"),
+            inverseJoinColumns = @JoinColumn(name="category_id_fk",referencedColumnName = "cat_id")
+    )
+   private Set<Category> categories;
 
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
