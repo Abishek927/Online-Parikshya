@@ -15,12 +15,13 @@ public class RoleController {
     @Autowired
     private RoleService roleService;
     @PostMapping(path = "/create",consumes = {MediaType.APPLICATION_JSON_VALUE},produces = {MediaType.APPLICATION_JSON_VALUE})
-
+    @PreAuthorize("hasAuthority('create_role')")
     ResponseEntity<RoleDto> createRoleController(@RequestBody RoleDto roleDto){
         roleDto=roleService.createRole(roleDto);
         return new ResponseEntity<>(roleDto, HttpStatusCode.valueOf(200));
     }
     @PutMapping("/update/{roleId}")
+    @PreAuthorize("hasAuthority('update_role')")
     ResponseEntity<RoleDto> updateRoleController(@PathVariable Long roleId,@RequestBody RoleDto roleDto) throws Exception {
         roleDto=roleService.updateRole(roleDto,roleId);
         return new ResponseEntity<>(roleDto, HttpStatusCode.valueOf(200));

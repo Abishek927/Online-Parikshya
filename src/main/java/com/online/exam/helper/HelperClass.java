@@ -3,14 +3,13 @@ package com.online.exam.helper;
 import com.online.exam.model.Question;
 import com.online.exam.repo.QuestionRepo;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-
+@AllArgsConstructor
 @Component
 public class HelperClass {
     @Autowired
@@ -27,15 +26,21 @@ public class HelperClass {
     public  List<Question>  generateRandomQuestion(List<Question> questions,int questionLimitSize) throws Exception {
         List<Question> randomGeneratedQuestion = new ArrayList<>(questionLimitSize);
         if (!questions.isEmpty()) {
-            for (int i = 0; i < questions.size(); i++) {
+            outerLoop:for (int i = 0; i < questions.size(); i++) {
 
-                int result =(int)(Math.random()*randomGeneratedQuestion.size());
-                if (!randomGeneratedQuestion.contains(questions.get(result))) {
-                    randomGeneratedQuestion.add(questions.get(result));
+                int result =(int)(Math.random()*questions.size());
+                if (randomGeneratedQuestion.contains(questions.get(result))==true) {
+                    continue;
+                }
+                randomGeneratedQuestion.add(questions.get(result));
+                if(randomGeneratedQuestion.size()==questionLimitSize){
+                    break outerLoop;
                 }
 
 
+
             }
+
 
 
         } else {

@@ -18,7 +18,7 @@ public interface CategoryService {
 
     List<CategoryDto> readCategoryByFaculty(Long userId, Long facultyId) throws Exception;
 
-    CategoryDto readCategoryByName(Long userId,Long facultyId,Long catId);
+    CategoryDto readCategoryById(Long userId,Long facultyId,Long catId);
 
 
 }

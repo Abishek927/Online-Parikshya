@@ -16,16 +16,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 
-import java.security.Principal;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,28 +79,11 @@ public class UserServiceImpl implements UserService {
         else {
             throw new Exception("Please select a valid role");
         }
-
-
-
         User user=new User();
         this.modelMapper.map(userDto,user);
         user.setUserEmail(user.getUserEmail().toLowerCase());
         user.setUserName(user.getUserName().toLowerCase());
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        if (retrievedRole.getRoleName().equals("ROLE_STUDENT")) {
+        if (retrievedRole.getRoleName().equals("ROLE_STUDENT")) {
                             Faculty faculty = this.queryHelper.getFacultyMethod(facId);
 
                             Category category = queryHelper.getCategoryMethod(catId);
@@ -120,11 +101,6 @@ public class UserServiceImpl implements UserService {
                                                 for (Course eachCourse : courses
                                                 ) {
                                                     if (eachCourse.getCourseId().equals(course.getCourseId())) {
-
-
-
-
-
                                                         user.setCategories(Set.of(category));
                                                         category.getUsers().add(user);
                                                         user.setCourses(Set.of(course));
@@ -177,8 +153,6 @@ public class UserServiceImpl implements UserService {
                                                         user.setUserDateOfBirth(null);
                                                         user.setCourses(Set.of(eachCourse));
                                                         course.getUsers().add(user);
-
-
                                                         user.setFaculties(Set.of(faculty));
                                                         faculty.getUsers().add(user);
                                                         user.setCategories(Set.of(category));
@@ -226,6 +200,7 @@ public class UserServiceImpl implements UserService {
                         user.setUserRoles(roles);
 
 
+
                         user = this.userRepo.save(user);
                         UserDto userDto1=this.modelMapper.map(user,UserDto.class);
                         userDto1.setUserId(user.getUserId());
@@ -261,9 +236,30 @@ public class UserServiceImpl implements UserService {
       UserStatus userStatus=retrievedUser.getUserStatus();
       if(userStatus.equals(UserStatus.pending)||userStatus.equals(UserStatus.approved)){
           retrievedUser.setIsEnabled(Boolean.FALSE);
-          retrievedUser.setFaculties(null);
-          retrievedUser.setCategories(null);
-          retrievedUser.setCourses(null);
+          Set<Faculty> faculties=retrievedUser.getFaculties();
+          if(!faculties.isEmpty()){
+              for (Faculty faculty:faculties
+                   ) {
+                  faculty.getUsers().remove(retrievedUser);
+              }
+          }
+
+
+          Set<Category> categories=retrievedUser.getCategories();
+          if(!categories.isEmpty()){
+              for (Category category:categories
+                   ) {
+                  category.getUsers().remove(retrievedUser);
+
+              }
+          }
+          Set<Course> courses=retrievedUser.getCourses();
+          if(!courses.isEmpty()){
+              for (Course course:courses
+                   ) {
+                  course.getUsers().remove(retrievedUser);
+              }
+          }
           this.userRepo.deleteById(retrievedUser.getUserId());
           message="User deleted successfully";
           return message;
@@ -320,6 +316,7 @@ return message;
        User user= this.userRepo.findById(userId).get();
        user.setUserStatus(UserStatus.approved);
        user.setIsEnabled(Boolean.TRUE);
+       userRepo.save(user);
         return "User approved!!!";
     }
 

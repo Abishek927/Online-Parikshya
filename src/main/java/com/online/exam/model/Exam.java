@@ -3,6 +3,7 @@ package com.online.exam.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.Where;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -46,8 +48,8 @@ public class Exam {
 
     @Column(name="exam_total_marks")
     private int examTotalMarks;
-    @Enumerated(EnumType.ORDINAL)
-    private QuestionPattern questionPattern;
+
+    private String questionPattern;
 
     private Boolean deleted=Boolean.FALSE;
 
@@ -62,10 +64,18 @@ public class Exam {
     @JsonBackReference(value = "course_table")
     private Course course;
 
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinTable(name = "exam_question",
+    joinColumns = @JoinColumn(name = "exam_id_fk",referencedColumnName ="exam_id"),
+            inverseJoinColumns = @JoinColumn(name="question_id_fk",referencedColumnName = "question_id")
+    )
+    @JsonIgnore
+    private Set<Question> questions;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "exam")
-    @JsonManagedReference(value = "exam_table")
-    private List<ExamQuestion> examquestions;
+    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")
+    @JsonBackReference(value = "user_table")
+    private User user;
 
 
 

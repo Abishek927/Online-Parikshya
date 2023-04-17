@@ -1,6 +1,7 @@
 package com.online.exam.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,15 +17,14 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name="question_table")
-@SQLDelete(sql = "UPDATE question_table q set q.deleted=true where q.question_id=?")
-@Where(clause = "deleted=false")
+
 
 public class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name="question_id")
     private Long questionId;
-    @Column(name="question_title",nullable = false,unique = true)
+    @Column(name="question_title")
     private String questionTitle;
 
     @Column(name="question_ch_1")
@@ -39,8 +39,7 @@ public class Question {
     @Column(name="question_marks",nullable = false)
     private int questionMarks;
 
-    @Column(name="deleted")
-    private Boolean deleted=Boolean.FALSE;
+
 
     @Enumerated(EnumType.ORDINAL)
     private AnswerChoice answerChoice;
@@ -49,13 +48,19 @@ public class Question {
     @JoinColumn(name = "course_id_fk",referencedColumnName = "course_id")
     @JsonBackReference(value = "course_table")
     private Course course;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="answer_id_fk",referencedColumnName = "answer_id")
-   private Answer answer;
+    private Answer answer;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "question")
-    @JsonManagedReference(value = "question_table")
-    private List<ExamQuestion> examQuestions;
+    @ManyToMany(mappedBy = "questions")
+    @JsonIgnore
+    private Set<Exam> exams;
+
+    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id_fk",referencedColumnName = "user_id")
+    @JsonBackReference(value = "user_table")
+    private User user;
 
 
 

@@ -2,17 +2,26 @@ package com.online.exam.helper;
 
 import com.online.exam.model.Question;
 import com.online.exam.model.QuestionPattern;
+import com.online.exam.repo.QuestionRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 @Component
 public class ExamHelper {
+    @Autowired
+    private QuestionRepo questionRepo;
+    public ExamHelper(QuestionRepo questionRepo){
+        this.questionRepo=questionRepo;
+    }
     public Boolean generateValidDate(Date startDate, Date endDate) {
+
         Date currentDate = new Date();
-        int num1 = currentDate.compareTo(startDate);
+        int num1 = startDate.compareTo(currentDate);
         int num2 = endDate.compareTo(startDate);
         if (num1 >= 0 && num2 > 0) {
             return Boolean.TRUE;
@@ -30,11 +39,12 @@ public class ExamHelper {
         return totalTime;
     }
 
-    public List<Question> generateQuestion(List<Question> questions, int questionLimitSize, QuestionPattern questionPattern) throws Exception {
+    public List<Question> generateQuestion(List<Question> questions, int questionLimitSize, String questionPattern) throws Exception {
         List<Question> resultedQuestion = new ArrayList<>();
-        HelperClass helperClass = new HelperClass();
 
-        if (questionPattern.equals(QuestionPattern.random)) {
+        HelperClass helperClass = new HelperClass(questionRepo);
+
+        if (questionPattern.equals(QuestionPattern.random.toString())) {
             if (!questions.isEmpty()) {
                 resultedQuestion = helperClass.generateRandomQuestion(questions, questionLimitSize);
 
@@ -42,7 +52,7 @@ public class ExamHelper {
                 throw new Exception("there is no questions!!!!");
             }
             return resultedQuestion;
-        } else if (questionPattern.equals(QuestionPattern.sort)) {
+        } else if (questionPattern.equals(QuestionPattern.sort.toString())) {
             if (!questions.isEmpty()) {
                 resultedQuestion = helperClass.generateSortedQuestion(questions, questionLimitSize);
             } else {
@@ -58,7 +68,7 @@ public class ExamHelper {
 
 
 
-    public int generateTotalMarks(List<Question> questions, int questionLimitSize, QuestionPattern questionPattern) throws Exception {
+    public int generateTotalMarks(List<Question> questions, int questionLimitSize, String questionPattern) throws Exception {
         int totalMarks = 0;
         List<Question> questions1 = generateQuestion(questions, questionLimitSize, questionPattern);
         if (!questions1.isEmpty()) {

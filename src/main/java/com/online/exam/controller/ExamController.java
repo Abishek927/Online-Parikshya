@@ -1,15 +1,19 @@
 package com.online.exam.controller;
 
-
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.model.Exam;
+import com.online.exam.model.User;
+import com.online.exam.repo.UserRepo;
 import com.online.exam.service.ExamService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -17,24 +21,34 @@ import java.util.List;
 public class ExamController {
     @Autowired
     private ExamService examService;
+    @Autowired
+    private UserRepo  userRepo;
 
-    @PostMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/{cId}/create")
-    ResponseEntity<?> createExamController(@PathVariable Long uId, @PathVariable Long facId, @PathVariable Long catId, @PathVariable Long cId, @RequestBody Exam exam) throws Exception {
-        Exam resultExam=this.examService.createExam(uId, facId, catId, cId, exam);
-        return new ResponseEntity<>(resultExam, HttpStatusCode.valueOf(200));
-
-    }
-    @DeleteMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/{cId}/delete")
-    ResponseEntity<?> deleteExamController(@PathVariable Long uId,@PathVariable Long facId,@PathVariable Long catId,@PathVariable Long cId,@RequestParam("examId")Long examId ) throws Exception {
-        String message=this.examService.deleteExam(uId, facId, catId, cId, examId);
-        if(message.contains("deleted")){
-            return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
+    @PostMapping("/user/{uId}/course/{cId}/create")
+    @PreAuthorize("hasAuthority('create_exam')")
+    ResponseEntity<?> createExamController(@PathVariable Long uId, @PathVariable Long cId, @RequestBody Exam exam, Principal principal) throws Exception {
+        String userName=principal.getName();
+        if(this.userRepo.findByUserEmail(userName).getUserId().equals(uId)) {
+            Exam resultExam = this.examService.createExam(uId, cId, exam);
+            return new ResponseEntity<>(resultExam, HttpStatusCode.valueOf(200));
         }
-        return new ResponseEntity<>(new ApiResponse(message,false),HttpStatusCode.valueOf(500));
+        return new ResponseEntity<>(new ApiResponse("Something went wrong!!",false),HttpStatusCode.valueOf(500));
+
+    }
+    @DeleteMapping("user/{userId}/delete/{examId}")
+    ResponseEntity<?> deleteExamController(@PathVariable Long userId,@PathVariable("examId")Long examId,Principal principal) throws Exception {
+
+
+            String message = this.examService.deleteExam(userId, examId,principal);
+            if (message.contains("deleted")) {
+                return new ResponseEntity<>(new ApiResponse(message, true), HttpStatusCode.valueOf(200));
+            }
+            return new ResponseEntity<>(new ApiResponse(message, false), HttpStatusCode.valueOf(500));
+
 
     }
 
-    @PutMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/{cId}/update")
+/*    @PutMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/{cId}/update")
     ResponseEntity<?> updateExamController(@PathVariable Long uId,@PathVariable Long facId,@PathVariable Long catId,@PathVariable Long cId,@RequestParam("examId")Long examId,@RequestBody Exam exam) throws Exception {
                 Exam updatedExam=this.examService.updateExam(uId, facId, catId, cId, examId, exam);
                 if(updatedExam!=null){
@@ -50,6 +64,5 @@ public class ExamController {
             return new ResponseEntity<>(exams,HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse("Something went wrong!!!",false),HttpStatusCode.valueOf(500));
-    }
-
+    }*/
 }

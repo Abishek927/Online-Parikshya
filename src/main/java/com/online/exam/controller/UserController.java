@@ -123,7 +123,7 @@ public class UserController {
 
         this.authenticate(userName,password,userDetails.getAuthorities());
         UserDto user = this.userService.getUserByEmail(userDto.getUserEmail());
-        if(user.getUserStatus().equals(UserStatus.approved)) {
+        if(user.getUserStatus().equals(UserStatus.approved) && user.isEnabled()==Boolean.TRUE) {
             user.setUserPassword(null);
             String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user));
             HttpHeaders headers = new HttpHeaders();

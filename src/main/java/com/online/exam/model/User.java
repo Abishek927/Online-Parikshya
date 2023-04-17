@@ -98,6 +98,14 @@ private Set<Faculty> faculties;
     @JsonManagedReference(value = "user_table")
     private List<Feedback> feedbacks;
 
+    @OneToMany(cascade = CascadeType.ALL,fetch =FetchType.LAZY,mappedBy = "user")
+    @JsonManagedReference(value = "user_table")
+    private List<Question> questions;
+
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
+    @JsonManagedReference(value = "user_table")
+    private List<Exam> exams;
+
 
 
 

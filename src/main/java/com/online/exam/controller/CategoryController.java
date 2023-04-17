@@ -50,7 +50,7 @@ public class CategoryController {
     @GetMapping("/user/{userId}/faculty/{facultyId}/category/readById")
     @PreAuthorize("hasAuthority('manage_category')")
     ResponseEntity<?> readCategoryByNameController(@PathVariable("userId")Long userId,@PathVariable("facultyId")Long facultyId,@RequestParam("catId")Long catId){
-        CategoryDto resultCategory=this.categoryService.readCategoryByName(userId,facultyId,catId);
+        CategoryDto resultCategory=this.categoryService.readCategoryById(userId,facultyId,catId);
         if(resultCategory.equals(null)){
             return new ResponseEntity<>(new ApiResponse("There is no category by the given id "+catId,true),HttpStatusCode.valueOf(200));
         }

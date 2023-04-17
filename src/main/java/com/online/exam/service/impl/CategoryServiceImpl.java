@@ -250,7 +250,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto readCategoryByName(Long userId,Long facultyId,Long catId) {
+    public CategoryDto readCategoryById(Long userId,Long facultyId,Long catId) {
         CategoryDto categoryDto=new CategoryDto();
         User user=this.queryHelper.getUserMethod(userId);
         Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
