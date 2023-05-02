@@ -10,7 +10,7 @@ import java.util.List;
 public interface UserService  {
 
 
-    UserDto createUser(UserDto userDto, Long facId, Long catId, Long courseId) throws Exception;
+    UserDto createUser(UserDto userDto) throws Exception;
 
     UserDto getUserByEmail(String email);
 

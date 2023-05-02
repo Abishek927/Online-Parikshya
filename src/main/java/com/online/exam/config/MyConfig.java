@@ -1,5 +1,6 @@
 package com.online.exam.config;
 
+import com.online.exam.constant.AppConstant;
 import com.online.exam.exception.JwtAccessDeniedHandler;
 import com.online.exam.exception.JwtAuthenticationEntryPoint;
 import com.online.exam.filter.JwtTokenAuthorizationFilter;
@@ -26,7 +27,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 public class MyConfig {
-    private static final String[] PUBLIC_URLS={"/user/login","/role/**","/user/**"};
     @Autowired
     private CustomUserDetailService customUserDetailService;
     @Autowired
@@ -47,7 +47,7 @@ public class MyConfig {
         return http.csrf().disable()
                 .cors().disable()
                 .authorizeHttpRequests()
-                .requestMatchers(PUBLIC_URLS).permitAll()
+                .requestMatchers(AppConstant.PUBLIC_URLS).permitAll()
 
                 .anyRequest()
                 .authenticated().and()

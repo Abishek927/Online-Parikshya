@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 
@@ -18,11 +19,11 @@ import java.util.List;
 public class FacultyController {
     @Autowired
     private FacultyService facultyService;
-    @PostMapping("/user/{userId}/faculty/create")
+    @PostMapping("/faculty/create")
     @PreAuthorize("hasAuthority('manage_faculty')")
-    ResponseEntity<?> createFacultyController(@PathVariable("userId")Long userId,@RequestBody FacultyDto faculty) throws Exception {
+    ResponseEntity<?> createFacultyController(@RequestBody FacultyDto faculty, Principal principal) throws Exception {
 
-        FacultyDto resultFaculty=this.facultyService.createFaculty(userId,faculty);
+        FacultyDto resultFaculty=this.facultyService.createFaculty(principal,faculty);
         if(resultFaculty==null){
             return new ResponseEntity<>(new ApiResponse("faculty creation is failed!!Something went wrong!!",false), HttpStatusCode.valueOf(500));
         }
@@ -30,30 +31,30 @@ public class FacultyController {
 
     }
 
-    @DeleteMapping("/user/{userId}/faculty/delete")
+    @DeleteMapping("/delete")
     @PreAuthorize("hasAuthority('manage_faculty')")
-    ResponseEntity<ApiResponse> deleteFacultyController(@PathVariable("userId")Long userId,@RequestParam("facultyName")String facultyName){
-        String responseMessage=this.facultyService.deleteFaculty(userId,facultyName);
+    ResponseEntity<ApiResponse> deleteFacultyController(@RequestParam("facultyName")String facultyName,Principal principal){
+        String responseMessage=this.facultyService.deleteFaculty(facultyName,principal);
         if(responseMessage.contains("successfully")){
             return new ResponseEntity<>(new ApiResponse(responseMessage,true),HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse(responseMessage,false),HttpStatusCode.valueOf(200));
     }
 
-    @PutMapping("/user/{userId}/faculty/update/{facultyId}")
+    @PutMapping("/faculty/update")
     @PreAuthorize("hasAuthority('manage_faculty')")
-    ResponseEntity<?> updateFacultyController(@PathVariable("userId")Long userId,@PathVariable("facultyId")Long facultyId,@RequestBody FacultyDto faculty) throws Exception {
-        FacultyDto updateFaculty=this.facultyService.updateFaculty(userId,facultyId,faculty);
+    ResponseEntity<?> updateFacultyController(@RequestBody FacultyDto faculty,Principal principal) throws Exception {
+        FacultyDto updateFaculty=this.facultyService.updateFaculty(faculty,principal);
         if(updateFaculty.equals(null)) {
             return new ResponseEntity<>(new ApiResponse("Something went wrong!!", false), HttpStatusCode.valueOf(500));
         }
             return new ResponseEntity<>(updateFaculty,HttpStatusCode.valueOf(200));
     }
 
-    @GetMapping("/user/{userId}/faculty/read")
+    @GetMapping("/faculty/read")
     @PreAuthorize("hasAuthority('manage_faculty')")
-    ResponseEntity<?> getFacultyByNameController(@PathVariable("userId")Long userId,@RequestParam("facultyName")String facultyName){
-        FacultyDto facultyByName=this.facultyService.getFacultyByName(userId,facultyName);
+    ResponseEntity<?> getFacultyByNameController(@RequestParam("facultyName")String facultyName,Principal principal){
+        FacultyDto facultyByName=this.facultyService.getFacultyByName(facultyName,principal);
         if(facultyByName.equals(null)){
             return new ResponseEntity<>(new ApiResponse("there is no faculty with the given name",false),HttpStatusCode.valueOf(500));
 
@@ -62,9 +63,8 @@ public class FacultyController {
     }
 
     @GetMapping("/faculty/getAll")
-    @PreAuthorize("hasAuthority('manage_faculty')")
-    ResponseEntity<?> getAllFacultyController(@RequestParam("userId")Long userId){
-        List<FacultyDto> facultyDtos=this.facultyService.getAllFaculty(userId);
+    ResponseEntity<?> getAllFacultyController(){
+        List<FacultyDto> facultyDtos=this.facultyService.getAllFaculty();
         if(facultyDtos!=null){
             return new ResponseEntity<>(facultyDtos,HttpStatusCode.valueOf(200));
         }

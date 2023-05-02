@@ -19,9 +19,11 @@ public interface QuestionRepo extends JpaRepository<Question,Long> {
 
     @Modifying
     @Query("delete from Question  q where q.questionId = ?1")
-    void deleteQuestionByQuestionId(Long firstName);
+    void deleteQuestionByQuestionId(Long id);
     @Modifying
     @Query("select q from Question  q")
     Set<Question> findAllQuestionSet();
+    @Query(value = "select q.questionId,q.questionTitle,q.answerChoice from  Question q where q.questionId not in(select q from q inner  join ExamQuestion eq on eq.question.questionId=q.questionId inner join Exam  e on e.examId=eq.exam.examId)",nativeQuery = true)
+    List<Question> findByQuestionNotInExam();
 
 }

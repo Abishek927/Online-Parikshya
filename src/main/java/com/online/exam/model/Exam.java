@@ -10,7 +10,6 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -59,23 +58,21 @@ public class Exam {
     @JsonManagedReference(value = "exam_table")
     private List<ExamAttempt> examAttemptList;
 
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.EAGER)
     @JoinColumn(name="course_id_fk",referencedColumnName = "course_id")
     @JsonBackReference(value = "course_table")
     private Course course;
+    @OneToMany(cascade = CascadeType.ALL,fetch =  FetchType.LAZY,mappedBy = "exam")
+    @JsonManagedReference(value = "exam_table")
+    private List<ExamQuestion> examQuestions;
 
-    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinTable(name = "exam_question",
-    joinColumns = @JoinColumn(name = "exam_id_fk",referencedColumnName ="exam_id"),
-            inverseJoinColumns = @JoinColumn(name="question_id_fk",referencedColumnName = "question_id")
-    )
-    @JsonIgnore
-    private Set<Question> questions;
-
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")
-    @JsonBackReference(value = "user_table")
-    private User user;
+   @ManyToMany( cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.LAZY)
+   @JoinTable(name="user_exam",
+   joinColumns = @JoinColumn(name="exam_id_fk",referencedColumnName = "exam_id")
+           ,inverseJoinColumns = @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")
+   )
+   @JsonIgnore
+    private Set<User> user;
 
 
 

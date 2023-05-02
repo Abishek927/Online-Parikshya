@@ -3,22 +3,24 @@ package com.online.exam.service;
 import com.online.exam.dto.CategoryDto;
 
 
+import java.security.Principal;
 import java.util.List;
 
 
 public interface CategoryService {
 
-    CategoryDto createCategory(Long userId, Long facultyId, CategoryDto categoryDto) throws Exception;
+    CategoryDto createCategory(CategoryDto categoryDto, Principal principal) throws Exception;
 
 
-    CategoryDto updateCategory(Long userId,Long facId,Long catId,CategoryDto categoryDto) throws Exception;
+    CategoryDto updateCategory(CategoryDto categoryDto,Principal principal) throws Exception;
 
 
-    String deleteCategory(Long userId,Long facultyId,Long catId) throws Exception;
+    String deleteCategory(Long catId,Principal principal) throws Exception;
 
-    List<CategoryDto> readCategoryByFaculty(Long userId, Long facultyId) throws Exception;
+    List<CategoryDto> readCategoryByFaculty(Long facultyId) throws Exception;
 
-    CategoryDto readCategoryById(Long userId,Long facultyId,Long catId);
+    CategoryDto readCategoryById(Long catId);
+    List<CategoryDto> readAllCategory(Principal principal);
 
 
 }

@@ -4,6 +4,7 @@ package com.online.exam.security;
 import com.online.exam.dto.UserDto;
 
 import com.online.exam.model.User;
+import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.UserService;
 
@@ -23,6 +24,8 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Autowired
     private UserService  userService;
+    @Autowired
+    private RoleRepo roleRepo;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user=userRepo.findByUserEmail(username);
@@ -31,7 +34,7 @@ public class CustomUserDetailService implements UserDetailsService {
         }
         UserDto  userDto=this.userService.getUserDto(user);
 
-        UserPrincipal userPrincipal=new UserPrincipal(userDto);
+        UserPrincipal userPrincipal=new UserPrincipal(userDto,roleRepo);
 
         return userPrincipal;
     }

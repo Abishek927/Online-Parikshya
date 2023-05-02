@@ -24,22 +24,24 @@ public class ExamController {
     @Autowired
     private UserRepo  userRepo;
 
-    @PostMapping("/user/{uId}/course/{cId}/create")
+    @PostMapping("/course/{cId}/create")
     @PreAuthorize("hasAuthority('create_exam')")
-    ResponseEntity<?> createExamController(@PathVariable Long uId, @PathVariable Long cId, @RequestBody Exam exam, Principal principal) throws Exception {
-        String userName=principal.getName();
-        if(this.userRepo.findByUserEmail(userName).getUserId().equals(uId)) {
-            Exam resultExam = this.examService.createExam(uId, cId, exam);
-            return new ResponseEntity<>(resultExam, HttpStatusCode.valueOf(200));
-        }
+    ResponseEntity<?> createExamController( @PathVariable Long cId, @RequestBody Exam exam, Principal principal) throws Exception {
+
+
+            Exam resultExam = this.examService.createExam(cId,exam,principal);
+            if(resultExam!=null) {
+                return new ResponseEntity<>(resultExam, HttpStatusCode.valueOf(200));
+            }
+
         return new ResponseEntity<>(new ApiResponse("Something went wrong!!",false),HttpStatusCode.valueOf(500));
 
     }
-    @DeleteMapping("user/{userId}/delete/{examId}")
-    ResponseEntity<?> deleteExamController(@PathVariable Long userId,@PathVariable("examId")Long examId,Principal principal) throws Exception {
+    @DeleteMapping("/delete/{examId}")
+    ResponseEntity<?> deleteExamController(@PathVariable("examId")Long examId,Principal principal) throws Exception {
 
 
-            String message = this.examService.deleteExam(userId, examId,principal);
+            String message = this.examService.deleteExam(examId,principal);
             if (message.contains("deleted")) {
                 return new ResponseEntity<>(new ApiResponse(message, true), HttpStatusCode.valueOf(200));
             }

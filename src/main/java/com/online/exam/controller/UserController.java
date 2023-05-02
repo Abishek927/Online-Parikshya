@@ -4,6 +4,7 @@ import com.online.exam.dto.UserDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.helper.JwtHelper;
 import com.online.exam.model.UserStatus;
+import com.online.exam.repo.RoleRepo;
 import com.online.exam.security.CustomUserDetailService;
 import com.online.exam.security.UserPrincipal;
 import com.online.exam.service.UserService;
@@ -35,17 +36,16 @@ public class UserController {
     private JwtHelper jwtHelper;
     @Autowired
     private CustomUserDetailService customUserDetailService;
+    @Autowired
+    private RoleRepo roleRepo;
+    @PostMapping("/create")
+    ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) throws Exception {
 
 
 
-    @PostMapping("/fac/{facId}/cat/{catId}/course/{courseId}/create")
-    ResponseEntity<UserDto> createUser(@PathVariable Long facId,@PathVariable("catId")Long catId,@PathVariable Long courseId,@RequestBody UserDto userDto) throws Exception {
 
 
-
-
-
-        UserDto resultUser=this.userService.createUser(userDto,facId,catId,courseId);
+        UserDto resultUser=this.userService.createUser(userDto);
         return new ResponseEntity<UserDto>(resultUser,HttpStatusCode.valueOf(200));
     }
 
@@ -120,12 +120,11 @@ public class UserController {
         String userName= userDto.getUserEmail();
         String password=userDto.getUserPassword();
         UserDetails userDetails=this.customUserDetailService.loadUserByUsername(userName);
-
         this.authenticate(userName,password,userDetails.getAuthorities());
         UserDto user = this.userService.getUserByEmail(userDto.getUserEmail());
         if(user.getUserStatus().equals(UserStatus.approved) && user.isEnabled()==Boolean.TRUE) {
             user.setUserPassword(null);
-            String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user));
+            String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user,roleRepo));
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + jwtToken);
             return ResponseEntity.ok().headers(headers).body(user);

@@ -15,5 +15,5 @@ public class FacultyDto {
     private Long facultyId;
     private String facultyName;
     private String facultyDesc;
-    private List<CategoryDto> categoryDtoList;
+    private Long userId;
 }

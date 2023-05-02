@@ -27,8 +27,12 @@ public class UserDto {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
     private String userDateOfBirth;
-    private Set<RoleDto> roleDtoSet;
-    private FacultyDto facultyDto;
-    private CategoryDto categoryDto;
-    private CourseDto courseDto;
+    private Long roleId;
+    private Long facultyId;
+    private Long categoryId;
+    private Long courseId;
+    private Set<Long> facultySet;
+    private Set<Long> categorySet;
+    private Set<Long> courseSet;
+
 }

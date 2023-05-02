@@ -4,35 +4,43 @@ import com.online.exam.dto.AuthorityDto;
 import com.online.exam.dto.RoleDto;
 import com.online.exam.dto.UserDto;
 import com.online.exam.model.Authority;
+import com.online.exam.model.Role;
+import com.online.exam.repo.RoleRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
 public class UserPrincipal implements UserDetails {
     @Autowired
     private UserDto userDto;
+    @Autowired
+    private RoleRepo roleRepo;
 
-    public UserPrincipal(UserDto userDto){
+    public UserPrincipal(UserDto userDto,RoleRepo roleRepo){
         super();
         this.userDto=userDto;
+        this.roleRepo=roleRepo;
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<RoleDto> roleDtos=this.userDto.getRoleDtoSet();
+        Role retrievedRole=roleRepo.getReferenceById(userDto.getRoleId());
+        List<Role> roles=new ArrayList<>();
+        roles.add(retrievedRole);
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-        for (RoleDto role : roleDtos) {
-            authorities.addAll(role.getAuthoritySet().stream().map(a -> new SimpleGrantedAuthority(a.getName()))
+        for (Role eachRole:roles
+             ) {
+            authorities.addAll(eachRole.getAuthorities().stream().map(a -> new SimpleGrantedAuthority(a.getAuthorityName()))
                     .collect(Collectors.toSet()));
+
         }
+
 
         return authorities;
     }

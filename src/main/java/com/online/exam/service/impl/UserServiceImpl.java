@@ -57,41 +57,23 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDto createUser(UserDto userDto, Long facId, Long catId, Long courseId) throws Exception {
+    public UserDto createUser(UserDto userDto) throws Exception {
         if(checkIfUserNameExists(userDto)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User Name already Exists");
         }
         if(checkIfUserEmailExists(userDto)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User email id already exists");
         }
-        Role retrievedRole=null;
-        Set<RoleDto> roleDtoSet=userDto.getRoleDtoSet();
-        if(!roleDtoSet.isEmpty()){
-            for (RoleDto eachRoleDto:roleDtoSet
-                 ) {
-                 retrievedRole=this.roleRepo.findByRoleName(eachRoleDto.getName());
-                if(retrievedRole==null){
-                    throw new Exception("Please select the valid role");
-                }
-
-            }
-        }
-        else {
-            throw new Exception("Please select a valid role");
-        }
+        Role retrievedRole=queryHelper.getRoleMethod(userDto.getRoleId());
         User user=new User();
         this.modelMapper.map(userDto,user);
         user.setUserEmail(user.getUserEmail().toLowerCase());
         user.setUserName(user.getUserName().toLowerCase());
         if (retrievedRole.getRoleName().equals("ROLE_STUDENT")) {
-                            Faculty faculty = this.queryHelper.getFacultyMethod(facId);
-
-                            Category category = queryHelper.getCategoryMethod(catId);
-                            Course course = this.queryHelper.getCourseMethod(courseId);
-                            if (catId > 0 && facId > 0 && courseId > 0) {
-
-
-                                List<Category> categories = faculty.getCategoryList();
+                            Faculty faculty = this.queryHelper.getFacultyMethod(userDto.getFacultyId());
+                            Category category = queryHelper.getCategoryMethod(userDto.getCategoryId());
+                            Course course = this.queryHelper.getCourseMethod(userDto.getCourseId());
+                            List<Category> categories = faculty.getCategoryList();
                                 if (!categories.isEmpty()) {
                                     for (Category eachCategory : categories
                                     ) {
@@ -126,19 +108,12 @@ public class UserServiceImpl implements UserService {
                                     throw new Exception("there is no categories for the given faculty");
                                 }
 
-                            } else {
-                                throw new Exception("Please select the valid faculty and category!!!!");
-                            }
                         } else if (retrievedRole.getRoleName().equals("ROLE_TEACHER")) {
-                            Faculty faculty = this.queryHelper.getFacultyMethod(facId);
+                            Faculty faculty = this.queryHelper.getFacultyMethod(userDto.getFacultyId());
 
-                            Category category = queryHelper.getCategoryMethod(catId);
-                            Course course = this.queryHelper.getCourseMethod(courseId);
-
-                            if (catId > 0 && facId > 0 && courseId>0 ) {
-
-
-                                List<Category> categories=faculty.getCategoryList();
+                            Category category = queryHelper.getCategoryMethod(userDto.getCategoryId());
+                            Course course = this.queryHelper.getCourseMethod(userDto.getUserId());
+                            List<Category> categories=faculty.getCategoryList();
                                 if(!categories.isEmpty()){
                                     for (Category eachCategory:categories
                                          ) {
@@ -159,8 +134,6 @@ public class UserServiceImpl implements UserService {
                                                         category.getUsers().add(user);
                                                         user.setUserStatus(UserStatus.pending);
                                                     }
-
-
                                                 }
 
                                             }else {
@@ -174,12 +147,9 @@ public class UserServiceImpl implements UserService {
                                 }else {
                                     throw new Exception("there is no categories for the given faculty");
                                 }
-                            } else {
-                                throw new Exception("Please select the valid faculty and category");
-                            }
+
 
                         }else if(retrievedRole.getRoleName().equals("ROLE_ADMIN")){
-                                if(facId<=0 && catId<=0 && courseId<=0){
                                     user.setUserRollNo(null);
                                     user.setUserGender(null);
                                     user.setUserDateOfBirth(null);
@@ -187,35 +157,18 @@ public class UserServiceImpl implements UserService {
                                     user.setUserStatus(UserStatus.approved);
                                     user.setIsEnabled(Boolean.TRUE);
 
-                                }
 
-                        }else {
+        }else {
                             throw new Exception("Invalid role!!!!");
                         }
-
-
                         user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
                         Set<Role> roles=new HashSet<>();
                         roles.add(retrievedRole);
                         user.setUserRoles(roles);
-
-
-
                         user = this.userRepo.save(user);
                         UserDto userDto1=this.modelMapper.map(user,UserDto.class);
                         userDto1.setUserId(user.getUserId());
-
-
-
-
-
-
-
-
-            return userDto1;
-
-
-
+                        return userDto1;
     }
 
     @Override
@@ -225,7 +178,7 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("user","email "+email,null);
         }
         UserDto  userDto=this.getUserDto(retrievedUser);
-
+        //.setFacultySet(Set.of(retrievedUser.getFaculties()));
         return userDto;
     }
 
@@ -264,10 +217,7 @@ public class UserServiceImpl implements UserService {
           message="User deleted successfully";
           return message;
       }
-
-
-
-return message;
+      return message;
 
     }
 
@@ -421,30 +371,12 @@ return message;
         userDto.setUserGender(user.getUserGender());
         userDto.setUserRollNo(user.getUserRollNo());
         userDto.setUserPassword(user.getUserPassword());
-
-        Set<RoleDto> rSet = new HashSet<>();
-        for(Role r : user.getUserRoles()) {
-            RoleDto rDto = new RoleDto();
-            rDto.setName(r.getRoleName());
-            Set<AuthorityDto> aSet = new HashSet<>();
-
-            for(Authority a : r.getAuthorities()) {
-                AuthorityDto aDto = new AuthorityDto(a.getAuthorityName());
-                aSet.add(aDto);
-            }
-            rDto.setAuthoritySet(aSet);
-            rSet.add(rDto);
+        for (Role eachRole:user.getUserRoles()
+             ) {
+            userDto.setRoleId(eachRole.getRoleId());
         }
-        userDto.setRoleDtoSet(rSet);
-
         return userDto;
     }
-
-
-
-
-
-
 }
 
 

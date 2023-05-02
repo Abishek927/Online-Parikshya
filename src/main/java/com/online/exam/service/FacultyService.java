@@ -3,15 +3,16 @@ package com.online.exam.service;
 import com.online.exam.dto.FacultyDto;
 
 
+import java.security.Principal;
 import java.util.List;
 
 public interface FacultyService {
 
-    FacultyDto createFaculty(Long userId, FacultyDto facultyDto) throws Exception;
-    String deleteFaculty(Long userId,String facultyName);
+    FacultyDto createFaculty(Principal principal,FacultyDto facultyDto) throws Exception;
+    String deleteFaculty(String facultyName,Principal principal);
 
-    FacultyDto updateFaculty(Long userId,Long facultyId,FacultyDto facultyDto) throws Exception;
+    FacultyDto updateFaculty(FacultyDto facultyDto,Principal principal) throws Exception;
 
-    FacultyDto getFacultyByName(Long userId,String name);
-    List<FacultyDto> getAllFaculty(Long userId);
+    FacultyDto getFacultyByName(String name,Principal principal);
+    List<FacultyDto> getAllFaculty();
 }

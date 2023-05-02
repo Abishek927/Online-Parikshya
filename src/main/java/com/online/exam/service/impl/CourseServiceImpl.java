@@ -6,11 +6,14 @@ import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.repo.CourseRepo;
 
+import com.online.exam.repo.UserRepo;
 import com.online.exam.service.CourseService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.util.ArrayList;
 
 import java.util.Date;
@@ -27,153 +30,71 @@ public class CourseServiceImpl implements CourseService {
     private CourseRepo courseRepo;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private UserRepo userRepo;
 
+    @Transactional
     @Override
-    public CourseDto createCourse(Long userId, Long facultyId, Long categoryId, CourseDto courseDto) throws Exception {
+    public CourseDto createCourse(CourseDto courseDto,Principal principal) throws Exception {
+        User retrievedUser=queryHelper.getUserMethod(courseDto.getUserId());
+        Category retrievedCategory=queryHelper.getCategoryMethod(courseDto.getCategoryId());
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
+        if(retrievedCategory.getUsers().contains(retrievedUser)&&loggedInUser.equals(retrievedUser)){
+            List<Course> retrievedCourse=retrievedCategory.getCourseList();
+           if(!retrievedCourse.isEmpty()) {
 
-
-        Course resultCourse=new Course();
-        User user=this.queryHelper.getUserMethod(userId);
-        Faculty faculty =this.queryHelper.getFacultyMethod(facultyId);
-        Category category =this.queryHelper.getCategoryMethod(categoryId);
-        Set<Faculty> faculties=user.getFaculties();
-        if(!faculties.isEmpty()) {
-            for (Faculty eachFaculty:faculties
-                 ) {
-                if(eachFaculty.getFacultyId().equals(facultyId)){
-                    List<Category> categories=eachFaculty.getCategoryList();
-                    if(!categories.isEmpty()){
-                        for (Category eachCategory:categories
-                             ) {
-                            if(eachCategory.getCategoryId().equals(categoryId)){
-                                List<Course> courses = category.getCourseList();
-                                if (!courses.isEmpty()) {
-                                    for (Course eachCourse : courses
-                                    ) {
-                                        Course retrievedCourse = this.courseRepo.findByCourseTitle(eachCourse.getCourseTitle());
-                                        if (retrievedCourse.getCourseTitle().equals(courseDto.getCourseTitle())) {
-                                            throw new Exception("Course with the given title already exist in the given category");
-                                        }
-
-                                    }
-                                }
-                                    Course course=new Course();
-                                course.setCourseTitle(courseDto.getCourseTitle());
-                                course.setCourseDesc(courseDto.getCourseDesc());
-                                course.setCourseCreated(new Date());
-                                    CourseDto courseDto1=new CourseDto();
-                                    course.setUsers(Set.of(user));
-                                    user.getCourses().add(course);
-                                    course.setCategory(category);
-                                    resultCourse=this.courseRepo.save(course);
-                                    courseDto1.setCourseId(resultCourse.getCourseId());
-                                    courseDto1.setCourseTitle(resultCourse.getCourseTitle());
-                                    courseDto1.setCourseDesc(resultCourse.getCourseDesc());
-                                    courseDto1.setCategoryDto(this.modelMapper.map(resultCourse.getCategory(),CategoryDto.class));
-                                    return courseDto1;
-
-
-                                }
-                            }
-
-                    }else {
-                        throw new Exception("there is no categories for given faculty with id "+facultyId);
-                    }
-                }
-            }
-
-
-
-
-
-
-        }else {
-            throw new Exception("there is no faculty for the given user with id "+userId);
+               for (Course eachCourse : retrievedCourse
+               ) {
+                   Course redundantCourse = this.courseRepo.findByCourseTitle(eachCourse.getCourseTitle());
+                   if (redundantCourse != null) {
+                       throw new Exception("Course with the given title already exist in the given category");
+                   }
+               }
+           }
+                        Course course = new Course();
+                        course.setCourseTitle(courseDto.getCourseTitle());
+                        course.setCourseDesc(courseDto.getCourseDesc());
+                        course.setCourseCreated(new Date());
+                        course.setUsers(Set.of(retrievedUser));
+                        retrievedUser.getCourses().add(course);
+                        course.setCategory(retrievedCategory);
+                        this.courseRepo.save(course);
+                        return courseDto;
         }
-
-                    return null;
+        return null;
     }
 
+    @Transactional
     @Override
-    public String deleteCourse(Long userId, Long facultyId, Long categoryId, Long courseId) throws Exception {
-        String message="";
-        User user=this.queryHelper.getUserMethod(userId);
-        Faculty faculty=this.queryHelper.getFacultyMethod(facultyId);
-        Category  category=this.queryHelper.getCategoryMethod(categoryId);
-        Course course=this.queryHelper.getCourseMethod(courseId);
-
-
-        List<Course> courses=category.getCourseList();
-        if(courses.isEmpty()){
-            throw new Exception("There is no course for the given category id "+categoryId);
-        }else {
-            for (Course eachCourse:courses
-                 ) {
-                if(eachCourse.getCourseId().equals(courseId)){
-
-                            Set<Faculty> faculties=user.getFaculties();
-                            if(!faculties.isEmpty()) {
-                                for (Faculty eachUserFaculties : faculties
-                                ) {
-                                    if (eachUserFaculties.getFacultyId().equals(faculty.getFacultyId())) {
-                                        Faculty faculty1 = eachUserFaculties;
-                                        List<Category> categories = faculty1.getCategoryList();
-                                        if (!categories.isEmpty()) {
-                                            for (Category eachCategory:categories
-                                                 ) {
-                                                if(eachCategory.getCategoryId().equals(category.getCategoryId())){
-                                                    course.setCategory(null);
-                                                    course.setUsers(null);
-                                                    user.getCourses().remove(course);
-                                                    List<Exam> exams=course.getExams();
-                                                    if(!exams.isEmpty()){
-                                                        for (Exam eachExam:exams
-                                                             ) {
-                                                            eachExam.setCourse(null);
-
-                                                        }
-                                                    }
-
-                                                    this.courseRepo.deleteById(course.getCourseId());
-                                                    message="course with the id "+courseId+" deleted successfully";
-
-                                                }
-                                            }
-
-                                        }else {
-                                            throw new Exception("no categories for the given faculty with id "+faculty1.getFacultyId());
-                                        }
-
-                                    }
-
-                                }
-                            }else {
-                                throw new Exception("no userfaculties for the given user with id "+user.getUserId());
-                            }
-
-                    }
-
-
+    public String deleteCourse(Long courseId, Principal principal) throws Exception {
+        String message = "";
+        User  user=userRepo.findByUserEmail(principal.getName());
+        Course course=queryHelper.getCourseMethod(courseId);
+        if(course.getUsers().contains(user))
+        {
+        course.setCategory(null);
+        course.setUsers(null);
+        user.getCourses().remove(course);
+        List<Exam> exams = course.getExams();
+        if (!exams.isEmpty()) {
+            for (Exam eachExam : exams
+            ) {
+                eachExam.setCourse(null);
 
             }
         }
-
-
-
-
+        this.courseRepo.deleteById(course.getCourseId());
+        message = "course with the id " + courseId + " deleted successfully";
         return message;
     }
 
     @Override
-    public CourseDto updateCourse(Long userId, Long facultyId, Long categoryId, Long courseId,CourseDto courseDto) throws Exception {
+    public CourseDto updateCourse(CourseDto,Principal principal) {
         User retrievedUser=this.queryHelper.getUserMethod(userId);
         Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facultyId);
         Category retrievedCategory=this.queryHelper.getCategoryMethod(categoryId);
         Course retrievedCourse=this.queryHelper.getCourseMethod(courseId);
-
-
-
-                        Set<Faculty> userFaculties = retrievedUser.getFaculties();
+        Set<Faculty> userFaculties = retrievedUser.getFaculties();
                         for (Faculty eachUserFaculty : userFaculties
                         ) {
                             Faculty faculty = eachUserFaculty;
@@ -221,11 +142,11 @@ public class CourseServiceImpl implements CourseService {
                             }
 
                         }
-                        return this.modelMapper.map(retrievedCourse,CourseDto.class);
+                        return cou;
     }
 
     @Override
-    public List<CourseDto> getCoursesByCategory(Long userId, Long facultyId, Long categoryId) throws Exception {
+    public List<CourseDto> getCoursesByCategory(Long categoryId) throws Exception {
         List<Course> retrievedCourse=new ArrayList<>();
         List<CourseDto> courseDtos=new ArrayList<>();
         User user=this.queryHelper.getUserMethod(userId);
@@ -270,20 +191,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public CourseDto getCourseById(Long userId, Long facultyId, Long categoryId, Long courseId) throws Exception {
-        User retrievedUser=this.queryHelper.getUserMethod(userId);
-        Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facultyId);
-        Category retrievedCategory=this.queryHelper.getCategoryMethod(categoryId);
-        Course retrievedCourse=this.queryHelper.getCourseMethod(courseId);
-        CourseDto resultCourseDto=new CourseDto();
+    public CourseDto getCourseById(Long courseId) throws Exception {
 
-            Set<Faculty> faculties=retrievedUser.getFaculties();
-            if(!faculties.isEmpty()){
-                for (Faculty eachFaculty:faculties
-                     ) {
-                    if(eachFaculty.getFacultyId().equals(facultyId)){
-                        List<Category> categories=eachFaculty.getCategoryList();
-                    if(!categories.isEmpty()){
+
+
+
+
                         for (Category eachCategory:categories
                              ) {
                             if(eachCategory.getCategoryId().equals(categoryId)){
@@ -307,18 +220,7 @@ public class CourseServiceImpl implements CourseService {
                             }
 
 
-                        }
 
-
-                    }else {
-                        throw new Exception("there is no category for the given faculty with id "+facultyId);
-                    }
-                    }
-                }
-
-            }else {
-                throw new Exception("there is no faculty for the given user with id "+userId);
-            }
 
         return null;
     }

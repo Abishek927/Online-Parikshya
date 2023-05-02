@@ -14,6 +14,6 @@ import java.util.List;
 public class CategoryDto {
     private Long categoryId;
     private String categoryName;
-   private List<CourseDto>  courseDtos;
-   private FacultyDto facultyDto;
+   private Long facultyId;
+   private Long userId;
 }

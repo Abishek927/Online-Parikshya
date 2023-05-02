@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,157 +27,101 @@ public class FacultyServiceImpl implements FacultyService {
 
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private UserRepo userRepo;
 
 
     @Autowired
     private QueryHelper queryHelper;
     @Override
-    public FacultyDto createFaculty(Long userId, FacultyDto facultyDto) throws Exception {
+    public FacultyDto createFaculty(Principal principal,FacultyDto facultyDto) throws Exception {
+        User retrievedUser=queryHelper.getUserMethod(facultyDto.getUserId());
+        User retrievedUser1=userRepo.findByUserEmail(principal.getName());
+        if(retrievedUser.getUserId().equals(retrievedUser1.getUserId())) {
+            Faculty retrievedFaculty = this.facultyRepo.findByFacultyName(facultyDto.getFacultyName());
+            if (retrievedFaculty != null) {
+                throw new Exception("Faculty with the given faculty name " + facultyDto.getFacultyName() + "already exists!!");
+            } else {
+                retrievedFaculty = this.modelMapper.map(facultyDto, Faculty.class);
 
-        User retrievedUser=queryHelper.getUserMethod(userId);
-
-        Faculty retrievedFaculty=this.facultyRepo.findByFacultyName(facultyDto.getFacultyName());
-        if(retrievedFaculty!=null){
-            throw new Exception("Faculty with the given faculty name "+facultyDto.getFacultyName()+"already exists!!");
-        }
-        else{
-                        retrievedFaculty=this.modelMapper.map(facultyDto,Faculty.class);
-
-                        retrievedUser.getFaculties().add(retrievedFaculty);
-                        retrievedFaculty.setUsers(Set.of(retrievedUser));
-
+                retrievedUser.getFaculties().add(retrievedFaculty);
+                retrievedFaculty.setUsers(Set.of(retrievedUser));
 
 
-                        retrievedFaculty=this.facultyRepo.save(retrievedFaculty);
-
-                    }
-
-
-
-
-
-        return this.modelMapper.map(retrievedFaculty,FacultyDto.class);
-    }
-
-    @Override
-    public String deleteFaculty(Long userId,String facultyName) {
-        User retrievedUser=this.queryHelper.getUserMethod(userId);
-
-        Faculty faculty=this.facultyRepo.findByFacultyName(facultyName);
-        if(faculty==null){
-            return "there is no faculty exist with the given name";
-        }else{
-           Set<Faculty> faculties=retrievedUser.getFaculties();
-           if(!faculties.isEmpty()) {
-               for (Faculty eachFaculty:faculties
-                    ) {
-                   if(eachFaculty.getFacultyId().equals(faculty.getFacultyId())){
-                       //eachFaculty.getUsers().remove(retrievedUser);
-                       this.facultyRepo.deleteById(faculty.getFacultyId());
-               }
-           }
-
-
-
-
-
-
-
-
+                retrievedFaculty = this.facultyRepo.save(retrievedFaculty);
 
             }
-           else{
-               return "there is no faculty created by the given user with id "+retrievedUser.getUserId();
-           }
-
+            return this.modelMapper.map(retrievedFaculty,FacultyDto.class);
         }
-
-
-        return "faculty deleted successfully";
+        return null;
     }
 
     @Override
-    public FacultyDto updateFaculty(Long userId, Long facultyId, FacultyDto facultyDto) throws Exception {
-        FacultyDto facultyDto1=new FacultyDto();
-        User retrievedUser=this.queryHelper.getUserMethod(userId);
-        Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facultyId);
-        Set<Faculty> faculties=retrievedUser.getFaculties();
-        if(!faculties.isEmpty()){
-            for (Faculty eachFaculty:faculties
-                 ) {
-                if(eachFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())){
-                    if(facultyDto.getFacultyName()!=null) {
+    public String deleteFaculty(String facultyName,Principal principal) {
+        User retrievedUser=userRepo.findByUserEmail(principal.getName());
+        Faculty faculty=this.facultyRepo.findByFacultyName(facultyName);
+            if (faculty == null) {
+                return "there is no faculty exist with the given name";
+            } else {
+                if(faculty.getUsers().contains(retrievedUser)) {
+                    Set<Faculty> faculties = retrievedUser.getFaculties();
+                    for (Faculty eachFaculty : faculties
+                        ) {
+                            if (eachFaculty.getFacultyId().equals(faculty.getFacultyId())) {
+                                //eachFaculty.getUsers().remove(retrievedUser);
+                                this.facultyRepo.deleteById(faculty.getFacultyId());
+                            }
+                        }
+                }
+
+            }
+            return "faculty deleted successfully";
+    }
+
+    @Override
+    public FacultyDto updateFaculty(FacultyDto facultyDto,Principal principal) throws Exception {
+        User retrievedUser=userRepo.findByUserEmail(principal.getName());
+        Faculty retrievedFaculty=this.queryHelper.getFacultyMethod(facultyDto.getFacultyId());
+        if(retrievedFaculty.getUsers().contains(retrievedUser)) {
+            Set<Faculty> faculties = retrievedUser.getFaculties();
+            for (Faculty eachFaculty : faculties
+            ) {
+                if (eachFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())) {
+                    if (facultyDto.getFacultyName() != null) {
                         retrievedFaculty.setFacultyName(facultyDto.getFacultyName());
                     }
-                    if(facultyDto.getFacultyDesc()!=null) {
+                    if (facultyDto.getFacultyDesc() != null) {
                         retrievedFaculty.setFacultyDesc(facultyDto.getFacultyDesc());
                     }
-                     Faculty faculty=this.facultyRepo.save(retrievedFaculty);
-                     facultyDto1.setFacultyId(faculty.getFacultyId());
-                     facultyDto1.setFacultyName(faculty.getFacultyName());
-                     facultyDto1.setFacultyDesc(faculty.getFacultyDesc());
-
+                    Faculty faculty = this.facultyRepo.save(retrievedFaculty);
+                    facultyDto.setFacultyId(faculty.getFacultyId());
                 }
             }
-
-        }else {
-            throw new Exception("there is no faculties created by the given user!!!");
         }
-
-
-
-
-
-
-
-
-
-
-        return facultyDto1;
+        return facultyDto;
     }
 
     @Override
-    public FacultyDto getFacultyByName(Long userId, String name) {
+    public FacultyDto getFacultyByName(String name,Principal principal) {
+        User retrievedUser=userRepo.findByUserEmail(principal.getName());
         FacultyDto resultDto=new FacultyDto();
-
-        User retrievedUser=this.queryHelper.getUserMethod(userId);
         Faculty resultFaculty=this.facultyRepo.findByFacultyName(name);
-        Set<Faculty> faculties=retrievedUser.getFaculties();
-        if(!faculties.isEmpty()){
-            for (Faculty eachFaculty:faculties
-                 ) {
-                if(eachFaculty.getFacultyId().equals(resultFaculty.getFacultyId())){
-                    if(resultFaculty!=null) {
-                        resultDto.setFacultyId(resultFaculty.getFacultyId());
-                        resultDto.setFacultyName(resultFaculty.getFacultyName());
-                        resultDto.setFacultyDesc(resultFaculty.getFacultyDesc());
-
-
-                    }
-                    else {
-                        return null;
-                    }
-                    }
+        if(resultFaculty!=null) {
+            if (resultFaculty.getUsers().contains(retrievedUser)) {
+                resultDto.setFacultyId(resultFaculty.getFacultyId());
+                resultDto.setFacultyName(resultFaculty.getFacultyName());
+                resultDto.setFacultyDesc(resultFaculty.getFacultyDesc());
             }
         }
-
-
-
-
-
-
-
         return resultDto;
     }
 
     @Override
-    public List<FacultyDto> getAllFaculty(Long userId) {
-        User retrievedUser=this.queryHelper.getUserMethod(userId);
-        Set<Faculty> faculties=retrievedUser.getFaculties();
-        if(!faculties.isEmpty()){
-            return faculties.stream().map(faculty -> this.modelMapper.map(faculty,FacultyDto.class)).collect(Collectors.toList());
-        }
-
+    public List<FacultyDto> getAllFaculty() {
+        List<Faculty> faculties=facultyRepo.findAll();
+            if(!faculties.isEmpty()) {
+                return faculties.stream().map(faculty -> this.modelMapper.map(faculty, FacultyDto.class)).collect(Collectors.toList());
+            }
 
         return null;
     }

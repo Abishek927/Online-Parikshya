@@ -1,15 +1,11 @@
 package com.online.exam.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 
 import java.util.List;
-import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,8 +35,6 @@ public class Question {
     @Column(name="question_marks",nullable = false)
     private int questionMarks;
 
-
-
     @Enumerated(EnumType.ORDINAL)
     private AnswerChoice answerChoice;
 
@@ -52,10 +46,9 @@ public class Question {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="answer_id_fk",referencedColumnName = "answer_id")
     private Answer answer;
-
-    @ManyToMany(mappedBy = "questions")
-    @JsonIgnore
-    private Set<Exam> exams;
+  @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "question")
+  @JsonManagedReference(value = "question_table")
+  private List<ExamQuestion> examQuestions;
 
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id_fk",referencedColumnName = "user_id")

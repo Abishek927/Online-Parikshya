@@ -8,6 +8,7 @@ import com.online.exam.model.*;
 import com.online.exam.repo.ExamRepo;
 
 import com.online.exam.repo.QuestionRepo;
+import com.online.exam.repo.UserRepo;
 import com.online.exam.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -28,18 +29,19 @@ public class ExamServiceImpl implements ExamService {
     private QueryHelper queryHelper;
     @Autowired
     private QuestionRepo questionRepo;
+    @Autowired
+    private UserRepo userRepo;
 
 
-    public Exam createExam(Long userId, Long courseId, Exam exam) throws Exception {
-        User retrievedUser = this.queryHelper.getUserMethod(userId);
+    public Exam createExam(Long courseId, Exam exam,Principal principal) throws Exception {
+        User retrievedUser=userRepo.findByUserEmail(principal.getName());
         HelperClass helperClass = new HelperClass(questionRepo);
         Course retrievedCourse = this.queryHelper.getCourseMethod(courseId);
         Exam resultExam = new Exam();
         Set<Course> courses = retrievedUser.getCourses();
-
         for (Course eachCourse : courses
         ) {
-            if (eachCourse.getCourseId().equals(retrievedCourse.getCourseId())) {
+            if (eachCourse.getCourseId().equals(courseId)) {
                 List<Exam> exams = eachCourse.getExams();
                 if (!exams.isEmpty()) {
                     for (Exam eachExam : exams
@@ -63,24 +65,26 @@ public class ExamServiceImpl implements ExamService {
 
                                 List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestion(), exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
                                 if (!questions.isEmpty()) {
-
-                                     Set<Question> questions1=new HashSet<>();
+                                    List<ExamQuestion> examQuestions=new ArrayList<>();
+                                    ExamQuestion examQuestion=new ExamQuestion();
+                                     examQuestion.setExam(exam);
                                     for (Question eachQUestion : questions
-                                    ) {
-                                        questions1.add(eachQUestion);
 
+                                    ) {
+                                        examQuestion.setQuestion(eachQUestion);
+                                        examQuestions.add(examQuestion);
                                     }
-                                    exam.setQuestions(questions1);
+                                    exam.setExamQuestions(examQuestions);
+
                                 } else {
                                     throw new Exception("Please select the appropriate question pattern");
                                 }
                                 int totalMarks = examHelper.generateTotalMarks(helperClass.findAllQuestion(), exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
                                 exam.setExamTotalMarks(totalMarks);
                                 exam.setCourse(retrievedCourse);
-                                exam.setUser(retrievedUser);
+                                exam.setUser(Set.of(retrievedUser));
+                                retrievedUser.getExams().add(exam);
                                 resultExam = this.examRepo.save(exam);
-
-
                             } else {
                                 throw new Exception("Invalid time!!!");
                             }
@@ -94,10 +98,28 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public String deleteExam(Long userId, Long examId, Principal principal) throws Exception {
+    public String deleteExam(Long examId, Principal principal) throws Exception {
+        String message="";
         Exam retrievedExam=this.queryHelper.getExamMethod(examId);
+        User retrievedUser=userRepo.findByUserEmail(principal.getName());
+        Set<User> users=retrievedExam.getUser();
 
-        return null;
+            if(retrievedExam.getExamId().equals(examId)){
+                for (User eachUser:users
+                     ) {
+                    if(eachUser.getUserId().equals(retrievedUser.getUserId())){
+                        examRepo.deleteById(examId);
+                        message="exam deleted successfully";
+                        return message;
+                    }
+
+                }
+
+
+        }
+
+
+        return message;
     }
 
     @Override
