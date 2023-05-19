@@ -4,6 +4,7 @@ import com.online.exam.dto.CategoryDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,6 +73,12 @@ public class CategoryController {
         CategoryDto categoryDto1=this.categoryService.updateCategory(categoryDto,principal);
 
         return new ResponseEntity<>(categoryDto1,HttpStatusCode.valueOf(200));
+    }
+    @GetMapping("/count")
+    @PreAuthorize("hasAuthority('manage_category')")
+    ResponseEntity<?> countController(Principal principal){
+        Integer integer=this.categoryService.countCategory(principal);
+        return ResponseEntity.status(HttpStatus.OK).body(integer);
     }
 
 }

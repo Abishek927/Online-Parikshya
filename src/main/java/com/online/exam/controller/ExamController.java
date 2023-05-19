@@ -1,5 +1,6 @@
 package com.online.exam.controller;
 
+import com.online.exam.dto.ExamDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.model.Exam;
 import com.online.exam.model.User;
@@ -7,6 +8,7 @@ import com.online.exam.repo.UserRepo;
 import com.online.exam.service.ExamService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/exam")
@@ -24,47 +27,47 @@ public class ExamController {
     @Autowired
     private UserRepo  userRepo;
 
-    @PostMapping("/course/{cId}/create")
+    @PostMapping("/create")
     @PreAuthorize("hasAuthority('create_exam')")
-    ResponseEntity<?> createExamController( @PathVariable Long cId, @RequestBody Exam exam, Principal principal) throws Exception {
-
-
-            Exam resultExam = this.examService.createExam(cId,exam,principal);
-            if(resultExam!=null) {
-                return new ResponseEntity<>(resultExam, HttpStatusCode.valueOf(200));
+    ResponseEntity<?> createExamController(@RequestBody ExamDto examDto, Principal principal) throws Exception {
+        Map<Integer,String> message= this.examService.createExam(examDto,principal);
+            if(message.containsKey(200)) {
+                return new ResponseEntity<>(message, HttpStatusCode.valueOf(200));
             }
-
-        return new ResponseEntity<>(new ApiResponse("Something went wrong!!",false),HttpStatusCode.valueOf(500));
+            return new ResponseEntity<>(message,HttpStatusCode.valueOf(500));
 
     }
     @DeleteMapping("/delete/{examId}")
+    @PreAuthorize("hasAuthority('create_exam')")
     ResponseEntity<?> deleteExamController(@PathVariable("examId")Long examId,Principal principal) throws Exception {
 
 
-            String message = this.examService.deleteExam(examId,principal);
-            if (message.contains("deleted")) {
-                return new ResponseEntity<>(new ApiResponse(message, true), HttpStatusCode.valueOf(200));
+            Map<Integer,String> message= this.examService.deleteExam(examId,principal);
+            if (message.containsKey(200)) {
+                return new ResponseEntity<>(message, HttpStatusCode.valueOf(200));
             }
-            return new ResponseEntity<>(new ApiResponse(message, false), HttpStatusCode.valueOf(500));
+            return new ResponseEntity<>(message, HttpStatusCode.valueOf(500));
 
 
     }
 
-/*    @PutMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/{cId}/update")
-    ResponseEntity<?> updateExamController(@PathVariable Long uId,@PathVariable Long facId,@PathVariable Long catId,@PathVariable Long cId,@RequestParam("examId")Long examId,@RequestBody Exam exam) throws Exception {
-                Exam updatedExam=this.examService.updateExam(uId, facId, catId, cId, examId, exam);
-                if(updatedExam!=null){
-                    return new ResponseEntity<>(updatedExam,HttpStatusCode.valueOf(200));
+   @PutMapping("/update")
+   @PreAuthorize("hasAuthority('create_exam')")
+   ResponseEntity<?> updateExamController(@RequestBody ExamDto examDto,Principal principal) throws Exception {
+                Map<Integer,String> message=this.examService.updateExam(examDto,principal);
+                if(message.containsKey(200)){
+                    return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
                 }
-                return new ResponseEntity<>(new ApiResponse("something went wrong",false),HttpStatusCode.valueOf(500));
+                return new ResponseEntity<>(message,HttpStatusCode.valueOf(500));
     }
 
-    @GetMapping("/user/{uId}/fac/{facId}/cat/{catId}/course/read")
-    ResponseEntity<?> getExamByCourseController(@PathVariable Long uId,@PathVariable Long facId,@PathVariable Long catId,@RequestParam("courseId")Long courseId) throws Exception {
-        List<Exam> exams =this.examService.getExamByCourse(uId, facId, catId, courseId);
+    @GetMapping("/read/{courseId}")
+    ResponseEntity<?> getExamByCourseController(@PathVariable("courseId")Long courseId) throws Exception {
+        List<ExamDto> exams =this.examService.getExamByCourse(courseId);
         if(!exams.isEmpty()){
             return new ResponseEntity<>(exams,HttpStatusCode.valueOf(200));
         }
-        return new ResponseEntity<>(new ApiResponse("Something went wrong!!!",false),HttpStatusCode.valueOf(500));
-    }*/
+        return new ResponseEntity<>(new ApiResponse("No exam for the given course!!!",false), HttpStatus.NO_CONTENT);
+    }
+
 }

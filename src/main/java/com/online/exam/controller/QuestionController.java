@@ -1,15 +1,17 @@
 package com.online.exam.controller;
 
+import com.online.exam.dto.QuestionDto;
 import com.online.exam.helper.ApiResponse;
-import com.online.exam.model.Question;
 import com.online.exam.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/question")
@@ -17,45 +19,48 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
-    @PostMapping("/user/{uId}/course/{cId}/create")
+    @PostMapping("/create")
     @PreAuthorize("hasAuthority('manage_question')")
-    ResponseEntity<?> createQuestionController(@PathVariable Long uId, @PathVariable Long cId, @RequestBody Question question) throws Exception {
-        Question resultQuestion=this.questionService.createQuestion(uId,cId, question);
-        if(resultQuestion!=null){
-            return new ResponseEntity<>(resultQuestion, HttpStatusCode.valueOf(200));
-        }
-        return new ResponseEntity<>(new ApiResponse("Something went wrong!!!",false),HttpStatusCode.valueOf(500));
+    ResponseEntity<ApiResponse> createQuestionController(@RequestBody QuestionDto question, Principal principal) throws Exception {
+        String message=this.questionService.createQuestion(question,principal);
+        return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
 
     }
 
-    @DeleteMapping ("/user/{uId}/delete/{qusId}")
+    @DeleteMapping ("/delete/{qusId}")
     @PreAuthorize("hasAuthority('manage_question')")
-    ResponseEntity<?> deleteQuestionController(@PathVariable Long uId,@PathVariable("qusId")Long qusId) throws Exception {
-        String deleteMessage=this.questionService.deleteQuestion(uId,qusId);
-        if(deleteMessage.contains("deleted")){
+    ResponseEntity<?> deleteQuestionController(@PathVariable("qusId")Long qusId,Principal principal) throws Exception {
+        String deleteMessage=this.questionService.deleteQuestion(qusId,principal);
             return new ResponseEntity<>(new ApiResponse(deleteMessage,true),HttpStatusCode.valueOf(200));
-        }
-        return new ResponseEntity<>(new ApiResponse(deleteMessage,false),HttpStatusCode.valueOf(200));
     }
 
-    @PutMapping("/user/{uId}/update/{qusId}")
+    @PutMapping("/update")
     @PreAuthorize("hasAuthority('manage_question')")
-    ResponseEntity<?> updateQuestionController(@PathVariable Long uId,@PathVariable("qusId")Long qusId,@RequestBody Question question) throws Exception {
-        Question resultQuestion=this.questionService.updateQuestion(uId,qusId, question);
-        if(resultQuestion==null){
-            return new ResponseEntity<>(new ApiResponse("something went wrong!!!",false),HttpStatusCode.valueOf(500));
+    ResponseEntity<Map<Integer,String>> updateQuestionController(@RequestBody QuestionDto question, Principal principal) throws Exception {
+        Map<Integer,String> message=this.questionService.updateQuestion(question,principal);
+        if(message.containsKey(500)){
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
         }
-        return new ResponseEntity<>(resultQuestion,HttpStatusCode.valueOf(200));
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
-    @GetMapping("/user/{uId}/course/{cId}/read")
+    @GetMapping("/readByCourse/{cId}")
     @PreAuthorize("hasAuthority('manage_question')")
-    ResponseEntity<?> getQuestionByCourse(@PathVariable Long uId,@PathVariable Long cId){
-        List<Question> questions =this.questionService.getQuestionByCourse(uId, cId);
+    ResponseEntity<?> getQuestionByCourse(@PathVariable Long cId,Principal principal){
+        List<QuestionDto> questions =this.questionService.getQuestionByCourse(cId,principal);
         if(questions.isEmpty()){
             return new ResponseEntity<>(new ApiResponse("there is no question for the given course",true),HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(questions,HttpStatusCode.valueOf(200));
+    }
+    @GetMapping("/read/{qId}")
+    @PreAuthorize("hasAuthority('manage_question')")
+    ResponseEntity<?> getQuestionById(@PathVariable Long qId,Principal principal){
+        QuestionDto question =this.questionService.getQuestionById(qId,principal);
+        if(question==null){
+            return new ResponseEntity<>(new ApiResponse("there is no question",true),HttpStatusCode.valueOf(200));
+        }
+        return new ResponseEntity<>(question,HttpStatusCode.valueOf(200));
     }
 
 

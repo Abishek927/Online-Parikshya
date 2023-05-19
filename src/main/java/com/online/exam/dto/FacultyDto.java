@@ -10,10 +10,10 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class FacultyDto {
     private Long facultyId;
     private String facultyName;
     private String facultyDesc;
     private Long userId;
+    private List<CategoryDto> categoryDtos;
 }

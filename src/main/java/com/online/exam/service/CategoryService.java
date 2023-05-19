@@ -21,6 +21,7 @@ public interface CategoryService {
 
     CategoryDto readCategoryById(Long catId);
     List<CategoryDto> readAllCategory(Principal principal);
+    Integer countCategory(Principal principal);
 
 
 }

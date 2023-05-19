@@ -13,6 +13,7 @@ import com.online.exam.repo.CategoryRepo;
 
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.CategoryService;
+import com.online.exam.service.CourseService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,8 @@ public class CategoryServiceImpl implements CategoryService {
     private ModelMapper modelMapper;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private CourseService courseService;
 
 
 
@@ -48,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
             List<Category> categories = faculty1.getCategoryList();
             for (Category eachCategory : categories
             ) {
-                if(eachCategory.getCategoryName().equals(categoryDto.getCategoryName())){
+                if(eachCategory.getCategoryName().equalsIgnoreCase(categoryDto.getCategoryName())){
                     throw new Exception("category with the given name already exist in the given faculty with id "+categoryDto.getFacultyId());
                 }
             }
@@ -112,10 +115,20 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     @Override
     public List<CategoryDto> readCategoryByFaculty(Long facultyId){
+        List<CategoryDto> categoryDtos=new ArrayList<>();
+        CategoryDto categoryDto=new CategoryDto();
            Faculty retrievedFaculty=queryHelper.getFacultyMethod(facultyId);
                List<Category> categories=categoryRepo.findByFaculty(retrievedFaculty);
-               if(!categories.isEmpty()){
-                   return categories.stream().map(category -> this.modelMapper.map(category,CategoryDto.class)).collect(Collectors.toList());
+               if(categories.isEmpty()){
+                   return null;
+               }else {
+                   for (Category eachCategory:categories
+                        ) {
+                       categoryDto.setCategoryId(eachCategory.getCategoryId());
+                       categoryDto.setCategoryName(eachCategory.getCategoryName());
+                       categoryDto.setCourseDtos(courseService.getCoursesByCategory(eachCategory.getCategoryId()));
+                       categoryDtos.add(categoryDto);
+                   }
                }
 
         return null;
@@ -143,6 +156,14 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         return null;
+    }
+
+    @Override
+    public Integer countCategory(Principal principal) {
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
+        Integer categoryCount=(loggedInUser.getCategories().size()>0)?categoryRepo.countCategoriesByUsers(Set.of(loggedInUser)):0;
+        return categoryCount;
+
     }
 
 

@@ -1,20 +1,17 @@
 package com.online.exam.helper;
-
 import com.online.exam.model.Question;
-import com.online.exam.model.QuestionPattern;
+import com.online.exam.model.User;
 import com.online.exam.repo.QuestionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 
-@Component
+
 public class ExamHelper {
     @Autowired
     private QuestionRepo questionRepo;
+    private User user;
     public ExamHelper(QuestionRepo questionRepo){
         this.questionRepo=questionRepo;
     }
@@ -41,48 +38,32 @@ public class ExamHelper {
 
     public List<Question> generateQuestion(List<Question> questions, int questionLimitSize, String questionPattern) throws Exception {
         List<Question> resultedQuestion = new ArrayList<>();
-
-        HelperClass helperClass = new HelperClass(questionRepo);
-
-        if (questionPattern.equals(QuestionPattern.random.toString())) {
-            if (!questions.isEmpty()) {
+        HelperClass helperClass = new HelperClass(questionRepo,user);
+        switch (questionPattern) {
+            case "random":
                 resultedQuestion = helperClass.generateRandomQuestion(questions, questionLimitSize);
-
-            } else {
-                throw new Exception("there is no questions!!!!");
-            }
-            return resultedQuestion;
-        } else if (questionPattern.equals(QuestionPattern.sort.toString())) {
-            if (!questions.isEmpty()) {
+                break;
+            case "sort":
                 resultedQuestion = helperClass.generateSortedQuestion(questions, questionLimitSize);
-            } else {
-                throw new Exception("there is no questions!!!");
-            }
-            return resultedQuestion;
-
+                break;
         }
         return resultedQuestion;
 
     }
 
 
+    public ExamHelper() {
+    }
 
-
-    public int generateTotalMarks(List<Question> questions, int questionLimitSize, String questionPattern) throws Exception {
+    public int generateTotalMarks(List<Question> questions) throws Exception {
         int totalMarks = 0;
-        List<Question> questions1 = generateQuestion(questions, questionLimitSize, questionPattern);
-        if (!questions1.isEmpty()) {
-            for (Question eachQuestion : questions1
+            for (Question eachQuestion : questions
             ) {
                 int retrievedMarks = eachQuestion.getQuestionMarks();
                 totalMarks = totalMarks + retrievedMarks;
-
-
             }
             return totalMarks;
-        } else {
-            throw new Exception("Please select the appropriate question pattern");
-        }
+
 
     }
 }

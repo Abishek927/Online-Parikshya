@@ -1,363 +1,298 @@
-
 package com.online.exam.service.impl;
-
+import com.online.exam.dto.ExamDto;
+import com.online.exam.dto.QuestionDto;
+import com.online.exam.dto.StudentExamDto;
 import com.online.exam.helper.ExamHelper;
 import com.online.exam.helper.HelperClass;
 import com.online.exam.helper.QueryHelper;
+import com.online.exam.helper.QuestionHelper;
 import com.online.exam.model.*;
+import com.online.exam.repo.ExamQuestionRepo;
 import com.online.exam.repo.ExamRepo;
-
 import com.online.exam.repo.QuestionRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.security.Principal;
+import java.util.*;
 
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
+@Transactional
 @Service
 public class ExamServiceImpl implements ExamService {
     @Autowired
     private ExamRepo examRepo;
-
     @Autowired
     private QueryHelper queryHelper;
     @Autowired
     private QuestionRepo questionRepo;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private ExamQuestionRepo examQuestionRepo;
 
 
-    public Exam createExam(Long courseId, Exam exam,Principal principal) throws Exception {
-        User retrievedUser=userRepo.findByUserEmail(principal.getName());
-        HelperClass helperClass = new HelperClass(questionRepo);
-        Course retrievedCourse = this.queryHelper.getCourseMethod(courseId);
-        Exam resultExam = new Exam();
+    public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
+        Map<Integer,String> message=new HashMap<>();
+        User retrievedUser = userRepo.findByUserEmail(principal.getName());
+        HelperClass helperClass = new HelperClass(questionRepo,retrievedUser);
+        Course retrievedCourse = new Course();
         Set<Course> courses = retrievedUser.getCourses();
-        for (Course eachCourse : courses
-        ) {
-            if (eachCourse.getCourseId().equals(courseId)) {
+        Exam exam = new Exam();
+        if (courses.size() == 1) {
+            for (Course eachCourse : courses
+            ) {
+                retrievedCourse = this.queryHelper.getCourseMethod(eachCourse.getCourseId());
                 List<Exam> exams = eachCourse.getExams();
                 if (!exams.isEmpty()) {
-                    for (Exam eachExam : exams
-                    ) {
-                        Exam exam1 = this.examRepo.findByExamTitle(eachExam.getExamTitle());
-                        if (exam1.getExamTitle().equalsIgnoreCase(exam.getExamTitle())) {
-                            throw new Exception("Exam with the given exam title " + exam.getExamTitle() + " already exists!!!");
-
-                        }
-                    }
-                }
-                            ExamHelper examHelper = new ExamHelper(questionRepo);
-
-                            if (examHelper.generateValidDate(exam.getExamStartedTime(), exam.getExamEndedTime())) {
-                                Long totalTime = examHelper.generateTotalExamTime(exam.getExamStartedTime(), exam.getExamEndedTime());
-                                if (totalTime != null) {
-                                    exam.setExamTimeLimit(totalTime);
-                                } else {
-                                    throw new Exception("something went wrong!!!");
-                                }
-
-                                List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestion(), exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
-                                if (!questions.isEmpty()) {
-                                    List<ExamQuestion> examQuestions=new ArrayList<>();
-                                    ExamQuestion examQuestion=new ExamQuestion();
-                                     examQuestion.setExam(exam);
-                                    for (Question eachQUestion : questions
-
-                                    ) {
-                                        examQuestion.setQuestion(eachQUestion);
-                                        examQuestions.add(examQuestion);
-                                    }
-                                    exam.setExamQuestions(examQuestions);
-
-                                } else {
-                                    throw new Exception("Please select the appropriate question pattern");
-                                }
-                                int totalMarks = examHelper.generateTotalMarks(helperClass.findAllQuestion(), exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
-                                exam.setExamTotalMarks(totalMarks);
-                                exam.setCourse(retrievedCourse);
-                                exam.setUser(Set.of(retrievedUser));
-                                retrievedUser.getExams().add(exam);
-                                resultExam = this.examRepo.save(exam);
-                            } else {
-                                throw new Exception("Invalid time!!!");
-                            }
-            }
-
-
-                return resultExam;
-            }
-
-        return null;
-    }
-
-    @Override
-    public String deleteExam(Long examId, Principal principal) throws Exception {
-        String message="";
-        Exam retrievedExam=this.queryHelper.getExamMethod(examId);
-        User retrievedUser=userRepo.findByUserEmail(principal.getName());
-        Set<User> users=retrievedExam.getUser();
-
-            if(retrievedExam.getExamId().equals(examId)){
-                for (User eachUser:users
-                     ) {
-                    if(eachUser.getUserId().equals(retrievedUser.getUserId())){
-                        examRepo.deleteById(examId);
-                        message="exam deleted successfully";
+                    if (checkWhetherExamWithGivenTitleExists(exams,examDto.getExamTitle())) {
+                        message.put(500,"exam with the given title already exists!!!");
                         return message;
                     }
 
                 }
+            }
+        }
+        ExamHelper examHelper = new ExamHelper(questionRepo);
+        if (examHelper.generateValidDate(examDto.getExamStartedTime(), examDto.getExamEndedTime())) {
+            exam.setExamStartedTime(examDto.getExamStartedTime());
+            exam.setExamEndedTime(examDto.getExamEndedTime());
+            Long totalTime = examHelper.generateTotalExamTime(examDto.getExamStartedTime(), examDto.getExamEndedTime());
+            exam.setExamTimeLimit(totalTime);
 
-
+        } else {
+            message.put(500,"Something wrong went with starting time");
+            return message;
         }
 
+                if(examDto.getQuestionPattern().equals(QuestionPattern.random)||examDto.getQuestionPattern().equals(QuestionPattern.sort)) {
+                    List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestionByUser(retrievedUser), exam.getExamQuestionDisplayLimit(),exam.getQuestionPattern());
+                        exam.setExamQuestions(addQuestion(questions,exam));
+                    exam.setExamTotalMarks(examHelper.generateTotalMarks(questions));
+                }else{
+                    message.put(500,"please select a proper question pattern!!");
+                    return message;
+                }
 
+            exam.setCourse(retrievedCourse);
+            exam.setUser(Set.of(retrievedUser));
+            retrievedUser.getExams().add(exam);
+            exam.setExamMode(ExamStatus.pending.toString());
+            exam.setExamStatus(true);
+            this.examRepo.save(exam);
+            message.put(200,"exam created successfully");
+            return message;
+
+    }
+
+    @Override
+    public Map<Integer,String> deleteExam(Long examId,Principal principal){
+        Map<Integer,String> message=new HashMap<>();
+        Exam retrievedExam=this.queryHelper.getExamMethod(examId);
+        User retrievedUser=userRepo.findByUserEmail(principal.getName());
+        if(retrievedExam.getExamMode().equals(ExamStatus.pending.toString())||retrievedExam.getExamMode().equals(ExamStatus.finish.toString())) {
+            if (retrievedExam.getUser().contains(retrievedUser)) {
+                Set<User> users=retrievedExam.getUser();
+                for (User eachUser:users
+                     ) {
+                    eachUser.setExams(null);
+                }
+                retrievedExam.setUser(null);
+                List<ExamQuestion> examQuestions=retrievedExam.getExamQuestions();
+                for (ExamQuestion eachExamQuestion:examQuestions
+                     ) {
+                        eachExamQuestion.setExam(null);
+                        eachExamQuestion.setQuestion(null);
+                    examQuestionRepo.delete(eachExamQuestion);
+                }
+                examRepo.deleteById(examId);
+                message.put(200,"exam deleted successfully");
+            }
+            else {
+                message.put(500,"Invalid loggedInUser for delete operation");
+                return message;
+            }
+        }
+        message.put(500,"Invalid exam mode for the delete operation");
         return message;
     }
 
     @Override
-    public Exam updateExam(Long userId, Long examId, Exam exam) throws Exception {
+    public List<ExamDto> getExamByCourse(Long courseId){
+        List<ExamDto> examDtos=new ArrayList<>();
+        ExamDto examDto;
+        Course retrievedCourse=queryHelper.getCourseMethod(courseId);
+        List<Exam> exams=examRepo.findByCourse(retrievedCourse);
+
+        if(!exams.isEmpty()){
+            for (Exam eachExam:exams
+                 ) {
+                examDto=getExamDto(eachExam);
+                examDtos.add(examDto);
+            }
+            return examDtos;
+        }
+
         return null;
     }
 
+
+
     @Override
-    public List<Exam> getExamByCourse(Long userId, Long courseId) throws Exception {
+    public Map<Integer,String> updateExam(ExamDto examDto, Principal principal) throws Exception {
+        Map<Integer,String> messageMap=new HashMap<>();
+        Exam retrievedExam=queryHelper.getExamMethod(examDto.getExamId());
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
+        ExamHelper examHelper=new ExamHelper();
+        if(retrievedExam.getExamMode().equals(ExamStatus.pending)||retrievedExam.getExamMode().equals(ExamStatus.finish)) {
+            if (retrievedExam.getUser().contains(loggedInUser)) {
+                retrievedExam.setExamStatus(false);
+                examRepo.save(retrievedExam);
+                if (!examDto.getExamTitle().isEmpty() && !examDto.getExamTitle().equals(retrievedExam.getExamTitle().toLowerCase())) {
+                    if (!checkWhetherExamWithGivenTitleExists(getAllExam(retrievedExam.getCourse()), examDto.getExamTitle())) {
+                        retrievedExam.setExamTitle(examDto.getExamTitle());
+
+                    } else {
+                        messageMap.put(500, "exam with the given title already exists!!");
+                        return messageMap;
+                    }
+                }
+                if (!examDto.getExamDesc().isEmpty() && !examDto.getExamDesc().equals(retrievedExam.getExamDesc().toLowerCase())) {
+                    retrievedExam.setExamDesc(examDto.getExamDesc());
+                }
+                if (!examDto.getExamStartedTime().toString().isEmpty() && !examDto.getExamEndedTime().toString().isEmpty()) {
+
+                    if (examHelper.generateValidDate(examDto.getExamStartedTime(), examDto.getExamEndedTime())) {
+                        retrievedExam.setExamStartedTime(examDto.getExamStartedTime());
+                        retrievedExam.setExamEndedTime(examDto.getExamEndedTime());
+                        retrievedExam.setExamTimeLimit(examHelper.generateTotalExamTime(examDto.getExamStartedTime(), examDto.getExamEndedTime()));
+                    } else {
+                        messageMap.put(500, "invalid date!!");
+                        return messageMap;
+                    }
+                }
+                if (examDto.getExamQuestionDisplayLimit() > 0) {
+                    HelperClass helperClass = new HelperClass(questionRepo,loggedInUser);
+                    List<Question> questions = helperClass.findAllQuestionByUser(loggedInUser);
+                        if (examDto.getQuestionPattern().equals(QuestionPattern.sort) || examDto.getQuestionPattern().equals(QuestionPattern.random)) {
+                            List<Question> questionList = examHelper.generateQuestion(questions, examDto.getExamQuestionDisplayLimit(), examDto.getQuestionPattern());
+                            retrievedExam.setQuestionPattern(examDto.getQuestionPattern());
+                            retrievedExam.setExamTotalMarks(examHelper.generateTotalMarks(questionList));
+                            deleteOldQuestion(retrievedExam.getExamQuestions());
+                            retrievedExam.setExamQuestions(addQuestion(questionList, retrievedExam));
+                        } else {
+                            messageMap.put(500, "Please select a valid question pattern!!!");
+                        }
+
+
+                } else {
+                    messageMap.put(500, "Invalid questionDisplayLimit!!!!");
+                    return messageMap;
+                }
+                retrievedExam.setExamMode(ExamStatus.pending.toString());
+                retrievedExam.setExamStatus(true);
+                examRepo.save(retrievedExam);
+                messageMap.put(200,"exam updated successfully");
+                return messageMap;
+            }
+            messageMap.put(500, "Invalid loggedInUser");
+            return messageMap;
+        }
+        messageMap.put(500,"inavlid exam mode for updation");
+        return messageMap;
+    }
+
+    @Override
+    public Map<Integer, String> startExam(StudentExamDto studentExamDto, Principal principal) {
+        if(checkExamAndStudentDetails(studentExamDto,principal)){
+
+        }
+
         return null;
     }
+
+
+
+
+    private boolean checkWhetherExamWithGivenTitleExists(List<Exam> exams,String title){
+        Boolean resultStatus=false;
+        for (Exam eachExam:exams
+             ) {
+            Exam exam=this.examRepo.findByExamTitle(title.toLowerCase());
+            if(exam==null){
+                resultStatus=true;
+            }
+        }
+        return resultStatus;
+    }
+
+
+    private List<Exam> getAllExam(Course course){
+        return examRepo.findByCourse(course);
+    }
+
+    private void deleteOldQuestion(List<ExamQuestion> examQuestions){
+        for (ExamQuestion eachExamQuestion:examQuestions
+             ) {
+            eachExamQuestion.setExam(null);
+            eachExamQuestion.setQuestion(null);
+            examQuestionRepo.delete(eachExamQuestion);
+        }
+    }
+    private List<ExamQuestion> addQuestion(List<Question> questions,Exam exam){
+        List<ExamQuestion> examQuestions=new ArrayList<>();
+        ExamQuestion examQuestion=new ExamQuestion();
+        for (Question eachQuestion:questions
+             ) {
+            examQuestion.setQuestion(eachQuestion);
+            examQuestion.setExam(exam);
+            examQuestionRepo.save(examQuestion);
+            examQuestions.add(examQuestion);
+        }
+        return examQuestions;
+    }
+
+    private ExamDto getExamDto(Exam exam){
+        ExamDto examDto=new ExamDto();
+        examDto.setExamId(exam.getExamId());
+        examDto.setExamTitle(exam.getExamTitle());
+        examDto.setExamDesc(exam.getExamDesc());
+        examDto.setExamTotalTime(exam.getExamTimeLimit());
+        examDto.setTotalMarks(examDto.getTotalMarks());
+        List<ExamQuestion> examQuestions=exam.getExamQuestions();
+        List<QuestionDto> questionDtos=new ArrayList<>();
+        QuestionDto questionDto=new QuestionDto();
+        for (ExamQuestion eachExamQuestion:examQuestions
+             ) {
+            questionDto=QuestionHelper.getQuestionDto(eachExamQuestion.getQuestion());
+            questionDtos.add(questionDto);
+
+        }
+        examDto.setQuestionDtos(questionDtos);
+
+
+        return examDto;
+    }
+
+
+    private boolean checkExamAndStudentDetails(StudentExamDto examDto,Principal principal){
+        boolean resultStatus=false;
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
+        Course course=queryHelper.getCourseMethod(examDto.getCourseId());
+        Optional<Exam> exam=examRepo.findById(examDto.getExamId());
+        Set<Category> categories=loggedInUser.getCategories();
+        for (Category eachCategory:categories
+             ) {
+            List<Course> courses=eachCategory.getCourseList();
+            if(!courses.isEmpty()&&courses.contains(course)&&course.getExams().contains(exam.get())){
+                resultStatus=true;
+            }
+        }
+        return resultStatus;
+    }
+
+
+
 }
-
-
-    /*public String deleteExam(Long userId, Long examId) throws Exception {
-        String message = "";
-
-        User retrievedUser = this.queryHelper.getUserMethod(userId);
-
-        Exam exam = this.queryHelper.getExamMethod(examId);
-        Faculty faculty = new Faculty();
-
-
-        Set<Faculty> userFaculties = retrievedUser.getFaculties();
-        for (Faculty eachUserFaculty : userFaculties
-        ) {
-            if (eachUserFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())) {
-                faculty = eachUserFaculty;
-            }
-        }
-
-
-        List<Category> categories = faculty.getCategoryList();
-        if (!categories.isEmpty()) {
-            for (Category eachCategory : categories
-            ) {
-                if (eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())) {
-                    List<Course> courses = eachCategory.getCourseList();
-                    if (!courses.isEmpty()) {
-                        for (Course eachCourse : courses
-                        ) {
-                            if (eachCourse.getCourseId().equals(retrievedCourse.getCourseId())) {
-                                List<Exam> exams = eachCourse.getExams();
-                                for (Exam eachExam : exams
-                                ) {
-                                    if (eachExam.getExamId().equals(exam.getExamId())) {
-                                        List<ExamQuestion> examQuestions = eachExam.getExamquestions();
-                                        if (!examQuestions.isEmpty()) {
-                                            for (ExamQuestion eachExamQuestion : examQuestions
-                                            ) {
-                                                if (eachExamQuestion.getExam().getExamId().equals(eachExam.getExamId())) {
-                                                    eachExamQuestion.setExam(null);
-                                                    eachExamQuestion.setQuestion(null);
-                                                }
-                                            }
-                                        }
-                                        exam.setCourse(null);
-                                        exam.setExamStatus(false);
-
-                                        this.examRepo.deleteById(examId);
-                                        return message = "exam deleted successfully!!!";
-                                    }
-                                }
-                            } else {
-                                return message = "exam with the given id " + examId + " does not exist in the given course with id " + courseId;
-                            }
-
-                        }
-
-                    } else {
-                        throw new Exception("No courses for the given category with catId " + eachCategory.getCategoryId());
-                    }
-                }
-
-            }
-        } else {
-            throw new Exception("No categories for the given faculty");
-        }
-
-
-        return null;
-    }*/
-
-  /*  @Override
-    public Exam updateExam(Long userId, Long examId, Exam exam) throws Exception {
-        User retrievedUser = this.queryHelper.getUserMethod(userId);
-
-        Exam retrievedExam = this.queryHelper.getExamMethod(examId);
-        Exam updatedExam = new Exam();
-        if (retrievedUser.getUserStatus().equals(UserStatus.approved)) {
-            Set<Faculty> userFaculties = retrievedUser.getFaculties();
-            for (Faculty eachUserFaculty : userFaculties
-            ) {
-                if (eachUserFaculty.getFacultyId().equals(retrievedFaculty)) {
-                    List<Category> categories = eachUserFaculty.getCategoryList();
-                    if (!categories.isEmpty()) {
-                        for (Category eachCategory : categories
-                        ) {
-                            if (eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())) {
-                                List<Course> courses = eachCategory.getCourseList();
-                                if (!courses.isEmpty()) {
-                                    for (Course eachCourse : courses
-                                    ) {
-                                        if (eachCourse.getCourseId().equals(retrievedCourse.getCourseId())) {
-                                            List<Exam> exams = eachCourse.getExams();
-                                            if (!exams.isEmpty()) {
-                                                for (Exam eachExam : exams
-                                                ) {
-                                                    if (eachExam.getExamId().equals(retrievedExam.getExamId())) {
-                                                        retrievedExam.setExamTitle(exam.getExamTitle());
-                                                        retrievedExam.setExamTotalMarks(exam.getExamTotalMarks());
-                                                        retrievedExam.setExamDesc(exam.getExamDesc());
-
-                                                        Boolean updatedStatus = exam.getExamStatus();
-                                                        if (updatedStatus == false) {
-                                                            retrievedExam.setExamStatus(updatedStatus);
-                                                        } else {
-                                                            retrievedExam.setExamStatus(Boolean.TRUE);
-                                                        }
-                                                        ExamHelper examHelper = new ExamHelper();
-                                                        if (examHelper.generateValidDate(exam.getExamStartedTime(), exam.getExamEndedTime())) {
-
-                                                            retrievedExam.setExamStartedTime(exam.getExamStartedTime());
-                                                            retrievedExam.setExamEndedTime(exam.getExamEndedTime());
-
-                                                        }
-                                                        Long examTime = examHelper.generateTotalExamTime(exam.getExamStartedTime(), exam.getExamEndedTime());
-                                                        if (examTime != null) {
-                                                            retrievedExam.setExamTimeLimit(examTime);
-                                                        } else {
-                                                            throw new Exception("Something went wrong!!!");
-                                                        }
-                                                        HelperClass helperClass = new HelperClass();
-                                                        List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestion(), exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
-                                                        if (!questions.isEmpty()) {
-                                                            List<ExamQuestion> examQuestions = exam.getExamquestions();
-                                                            if (!examQuestions.isEmpty()) {
-                                                                for (ExamQuestion eachExamQuestion : examQuestions
-                                                                ) {
-                                                                    if (eachExamQuestion.getExam().getExamId().equals(eachExam.getExamId())) {
-                                                                        for (Question eachQuestion : questions
-                                                                        ) {
-                                                                            eachExamQuestion.setQuestion(eachQuestion);
-
-                                                                        }
-                                                                        eachExamQuestion.setExam(eachExamQuestion.getExam());
-                                                                    }
-
-                                                                }
-                                                                retrievedExam.setExamquestions(examQuestions);
-                                                            } else {
-                                                                throw new Exception("there is no examquestions for the given exam with id " + retrievedExam.getExamId());
-                                                            }
-
-                                                            int totalMarks = examHelper.generateTotalMarks(questions, exam.getExamQuestionDisplayLimit(), exam.getQuestionPattern());
-
-                                                            retrievedExam.setExamTotalMarks(totalMarks);
-                                                        } else {
-                                                            throw new Exception("Please select the appropriate question pattern");
-                                                        }
-                                                        updatedExam = this.examRepo.save(retrievedExam);
-
-
-                                                    }
-
-                                                }
-
-                                            } else {
-                                                throw new Exception("there is no exams for the given course with id " + eachCourse.getCourseId());
-                                            }
-                                        }
-                                    }
-
-                                } else {
-                                    throw new Exception("there is no courses for the given category with id " + eachCategory.getCategoryId());
-                                }
-                            }
-
-                        }
-
-                    } else {
-                        throw new Exception("there is no categories for the given faculty with id " + eachUserFaculty.getFacultyId());
-                    }
-                }
-
-            }
-        } else {
-            throw new Exception("invalid user status for the update operation!!!!");
-        }
-
-
-        return updatedExam;
-    }
-
-    @Override
-    public List<Exam> getExamByCourse(Long userId, Long courseId) throws Exception {
-        List<Exam> resultExam = new ArrayList<>();
-        User retrieveduser = this.queryHelper.getUserMethod(userId);
-        Course retrievedCourse = this.queryHelper.getCourseMethod(courseId);
-        Faculty faculty = new Faculty();
-        List<Exam> exams = retrievedCourse.getExams();
-        if (exams == null) {
-            return resultExam;
-        } else {
-
-            Set<Faculty> userFaculties = retrieveduser.getFaculties();
-            for (Faculty eachUserFaculty : userFaculties
-            ) {
-                if (eachUserFaculty.getFacultyId().equals(retrievedFaculty.getFacultyId())) {
-                    faculty = eachUserFaculty;
-                }
-            }
-
-
-            List<Category> categories = faculty.getCategoryList();
-            if (!categories.isEmpty()) {
-                for (Category eachCategory : categories
-                ) {
-                    if (eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())) {
-                        List<Course> courses = eachCategory.getCourseList();
-                        for (Course eachCourse : courses
-                        ) {
-                            if (eachCourse.getCourseId().equals(retrievedCourse.getCourseId())) {
-                                resultExam = this.examRepo.findByCourse(eachCourse);
-                            }
-                        }
-                    }
-                }
-            } else {
-                throw new Exception("there is no categories for the given faculty with id " + retrievedFaculty);
-            }
-        }
-
-        retrieveduser.getFaculties();
-
-
-        return resultExam;
-    }
-
-}*/
 

@@ -6,11 +6,12 @@ import com.online.exam.model.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService  {
 
 
-    UserDto createUser(UserDto userDto) throws Exception;
+    Map<Integer,String> createUser(UserDto userDto) throws Exception;
 
     UserDto getUserByEmail(String email);
 

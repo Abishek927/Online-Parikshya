@@ -9,10 +9,7 @@ import com.online.exam.security.CustomUserDetailService;
 import com.online.exam.security.UserPrincipal;
 import com.online.exam.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
@@ -24,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -39,14 +37,17 @@ public class UserController {
     @Autowired
     private RoleRepo roleRepo;
     @PostMapping("/create")
-    ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) throws Exception {
+    ResponseEntity<Map<Integer,String>> createUser(@RequestBody UserDto userDto) throws Exception {
 
 
 
 
 
-        UserDto resultUser=this.userService.createUser(userDto);
-        return new ResponseEntity<UserDto>(resultUser,HttpStatusCode.valueOf(200));
+        Map<Integer,String> resultUser=this.userService.createUser(userDto);
+        if(resultUser.containsKey(200)) {
+            return ResponseEntity.status(HttpStatus.OK).body(resultUser);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultUser);
     }
 
 /*    @GetMapping("/readByEmail")

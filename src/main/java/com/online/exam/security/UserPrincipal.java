@@ -30,7 +30,7 @@ public class UserPrincipal implements UserDetails {
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Role retrievedRole=roleRepo.getReferenceById(userDto.getRoleId());
+        Role retrievedRole=roleRepo.findByRoleName(userDto.getRoleName());
         List<Role> roles=new ArrayList<>();
         roles.add(retrievedRole);
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();

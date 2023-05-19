@@ -19,7 +19,6 @@ public class ExamAttempt {
     @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")
     @JsonBackReference(value = "user_table")
     private User user;
-
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name="exam_id_fk",referencedColumnName = "exam_id")
     @JsonBackReference(value = "exam_table")

@@ -29,7 +29,7 @@ public class RoleServiceImpl implements RoleService {
     public RoleDto createRole(RoleDto roleDto) {
         Role resultRole=null;
         Role role=new Role();
-        role.setRoleName(roleDto.getName());
+        role.setRoleName(roleDto.getName().toUpperCase());
         role.setAuthorities(roleDto.getAuthoritySet().stream().map(a->{
             Authority authority=authorityRepo.findByAuthorityName(a.getName());
             if(authority==null){

@@ -16,4 +16,5 @@ public class CategoryDto {
     private String categoryName;
    private Long facultyId;
    private Long userId;
+   List<CourseDto> courseDtos;
 }

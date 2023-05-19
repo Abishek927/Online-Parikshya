@@ -7,8 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-
+import java.time.LocalDate;
 import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,8 +25,8 @@ public class UserDto {
     private String userGender;
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
-    private String userDateOfBirth;
-    private Long roleId;
+    private LocalDate userDateOfBirth;
+    private String roleName;
     private Long facultyId;
     private Long categoryId;
     private Long courseId;

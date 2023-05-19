@@ -21,9 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
-
-
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,118 +54,36 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDto createUser(UserDto userDto) throws Exception {
+    public Map<Integer,String> createUser(UserDto userDto) throws Exception {
+        Map<Integer,String> message=new HashMap<>();
         if(checkIfUserNameExists(userDto)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User Name already Exists");
         }
         if(checkIfUserEmailExists(userDto)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User email id already exists");
         }
-        Role retrievedRole=queryHelper.getRoleMethod(userDto.getRoleId());
+        Role retrievedRole=roleRepo.findByRoleName(userDto.getRoleName().toUpperCase());
         User user=new User();
-        this.modelMapper.map(userDto,user);
-        user.setUserEmail(user.getUserEmail().toLowerCase());
-        user.setUserName(user.getUserName().toLowerCase());
         if (retrievedRole.getRoleName().equals("ROLE_STUDENT")) {
-                            Faculty faculty = this.queryHelper.getFacultyMethod(userDto.getFacultyId());
-                            Category category = queryHelper.getCategoryMethod(userDto.getCategoryId());
-                            Course course = this.queryHelper.getCourseMethod(userDto.getCourseId());
-                            List<Category> categories = faculty.getCategoryList();
-                                if (!categories.isEmpty()) {
-                                    for (Category eachCategory : categories
-                                    ) {
-                                        if (eachCategory.getCategoryId().equals(category.getCategoryId())) {
-                                            List<Course> courses = eachCategory.getCourseList();
-                                            if (!courses.isEmpty()) {
-                                                for (Course eachCourse : courses
-                                                ) {
-                                                    if (eachCourse.getCourseId().equals(course.getCourseId())) {
-                                                        user.setCategories(Set.of(category));
-                                                        category.getUsers().add(user);
-                                                        user.setCourses(Set.of(course));
-                                                        course.getUsers().add(user);
-                                                        user.setFaculties(Set.of(faculty));
-                                                        faculty.getUsers().add(user);
-                                                        user.setUserStatus(UserStatus.pending);
-                                                    }
-
-                                                }
+                         user=setUserBasicAttribute(userDto);
+                         userRepo.save(user);
+                         message.put(200,"Student created successfully");
 
 
-                                            } else {
-                                                throw new Exception("there is no courses for the given category!!!");
-
-                                            }
-                                        }
-
-                                    }
-
-
-                                } else {
-                                    throw new Exception("there is no categories for the given faculty");
-                                }
-
-                        } else if (retrievedRole.getRoleName().equals("ROLE_TEACHER")) {
-                            Faculty faculty = this.queryHelper.getFacultyMethod(userDto.getFacultyId());
-
-                            Category category = queryHelper.getCategoryMethod(userDto.getCategoryId());
-                            Course course = this.queryHelper.getCourseMethod(userDto.getUserId());
-                            List<Category> categories=faculty.getCategoryList();
-                                if(!categories.isEmpty()){
-                                    for (Category eachCategory:categories
-                                         ) {
-                                        if(eachCategory.getCategoryId().equals(category.getCategoryId())){
-                                            List<Course> courses=eachCategory.getCourseList();
-                                            if(!courses.isEmpty()){
-                                                for (Course eachCourse:courses
-                                                     ) {
-                                                    if(eachCourse.getCourseId().equals(course.getCourseId())){
-                                                        user.setUserGender(null);
-                                                        user.setUserRollNo(null);
-                                                        user.setUserDateOfBirth(null);
-                                                        user.setCourses(Set.of(eachCourse));
-                                                        course.getUsers().add(user);
-                                                        user.setFaculties(Set.of(faculty));
-                                                        faculty.getUsers().add(user);
-                                                        user.setCategories(Set.of(category));
-                                                        category.getUsers().add(user);
-                                                        user.setUserStatus(UserStatus.pending);
-                                                    }
-                                                }
-
-                                            }else {
-                                                throw new Exception("there is no courses for the given category");
-                                            }
-
-
-                                        }
-
-                                    }
-                                }else {
-                                    throw new Exception("there is no categories for the given faculty");
-                                }
-
-
-                        }else if(retrievedRole.getRoleName().equals("ROLE_ADMIN")){
-                                    user.setUserRollNo(null);
-                                    user.setUserGender(null);
-                                    user.setUserDateOfBirth(null);
-                                    user.setUserContactNumber(null);
-                                    user.setUserStatus(UserStatus.approved);
-                                    user.setIsEnabled(Boolean.TRUE);
+        } else if (retrievedRole.getRoleName().equals("ROLE_TEACHER")) {
+            user=setUserBasicAttribute(userDto);
+            userRepo.save(user);
+            message.put(200,"teacher created successfully!!!");
+        }else if(retrievedRole.getRoleName().equals("ROLE_ADMIN")){
+            user=setUserBasicAttribute(userDto);
+            userRepo.save(user);
+            message.put(200,"admin created successfully");
 
 
         }else {
                             throw new Exception("Invalid role!!!!");
                         }
-                        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
-                        Set<Role> roles=new HashSet<>();
-                        roles.add(retrievedRole);
-                        user.setUserRoles(roles);
-                        user = this.userRepo.save(user);
-                        UserDto userDto1=this.modelMapper.map(user,UserDto.class);
-                        userDto1.setUserId(user.getUserId());
-                        return userDto1;
+        return message;
     }
 
     @Override
@@ -221,7 +136,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
-   // @Override
+    @Override
+    public UserDto getUserDto(User user) {
+        return null;
+    }
+
+    // @Override
     /*public UserDto updateUser(Long userId, UserDto updatedUser) throws Exception {
         User retrievedUser=this.queryHelper.getUserMethod(userId);
 
@@ -361,7 +281,7 @@ public class UserServiceImpl implements UserService {
     }*/
 
 
-    public UserDto getUserDto(User user) {
+/*    public UserDto getUserDto(User user) {
         UserDto userDto = new UserDto();
         userDto.setUserEmail(user.getUserEmail());
         userDto.setEnabled(user.getIsEnabled());
@@ -376,7 +296,123 @@ public class UserServiceImpl implements UserService {
             userDto.setRoleId(eachRole.getRoleId());
         }
         return userDto;
+    }*/
+
+
+    private User setUserBasicAttribute(UserDto userDto) throws Exception {
+        User user=new User();
+        switch (userDto.getRoleName()){
+            case "ROLE_TEACHER":
+                user=setUserAdditionalAttribute(userDto);
+                user.setUserName(userDto.getUserName().toLowerCase());
+                user.setUserPassword(passwordEncoder.encode(userDto.getUserPassword()));
+                user.setUserEmail(userDto.getUserEmail().toLowerCase());
+                user.setUserContactNumber(userDto.getUserContactNumber());
+                user.setUserStatus(UserStatus.pending);
+                break;
+            case "ROLE_STUDENT":
+                user=setUserAdditionalAttribute(userDto);
+                user.setUserContactNumber(userDto.getUserContactNumber());
+                user.setUserName(userDto.getUserName().toLowerCase());
+                user.setUserPassword(passwordEncoder.encode(userDto.getUserPassword()));
+                user.setUserEmail(userDto.getUserEmail().toLowerCase());
+                user.setUserGender(userDto.getUserGender());
+                user.setUserDateOfBirth(userDto.getUserDateOfBirth());
+                user.setUserStatus(UserStatus.pending);
+                break;
+            case "ROLE_ADMIN":
+                user.setUserEmail(userDto.getUserEmail().toLowerCase());
+                user.setUserName(userDto.getUserName().toLowerCase());
+                user.setUserPassword(passwordEncoder.encode(userDto.getUserPassword()));
+                user.setUserStatus(UserStatus.approved);
+                break;
+        }
+        return user;
     }
+    private User setUserAdditionalAttribute(UserDto userDto) throws Exception {
+        User user=new User();
+        switch (userDto.getRoleName()){
+            case "ROLE_TEACHER":
+                Boolean resultStatus=checkProvidedAttribute(userDto);
+
+                Faculty retrievedFaculty=queryHelper.getFacultyMethod(userDto.getFacultyId());
+                Category retrievedCategory=queryHelper.getCategoryMethod(userDto.getCategoryId());
+                Course retrievedCourse=queryHelper.getCourseMethod(userDto.getCourseId());
+                if(resultStatus){
+                user.setCourses(Set.of(retrievedCourse));
+                retrievedCourse.getUsers().add(user);
+                user.setFaculties(Set.of(retrievedFaculty));
+                retrievedFaculty.getUsers().add(user);
+                user.setCategories(Set.of(retrievedCategory));
+                retrievedCategory.getUsers().add(user);
+                }
+                break;
+                case "ROLE_STUDENT":
+                    Faculty retrievedFaculty1=queryHelper.getFacultyMethod(userDto.getFacultyId());
+                    Category retrievedCategory1=queryHelper.getCategoryMethod(userDto.getCategoryId());
+                    Boolean status=checkProvidedAttribute(userDto);
+                    if(status){
+                        user.setCategories(Set.of(retrievedCategory1));
+                        retrievedCategory1.getUsers().add(user);
+                        user.setFaculties(Set.of(retrievedFaculty1));
+                        retrievedFaculty1.getUsers().add(user);
+                    }
+                    break;
+        }
+        return user;
+    }
+    private boolean checkProvidedAttribute(UserDto userDto) throws Exception {//check whether the provided attribute is coorect or not
+        boolean resultStatus=false;
+        switch (userDto.getUserName()){
+            case "ROLE_TEACHER":
+                Faculty retrievedFaculty=queryHelper.getFacultyMethod(userDto.getFacultyId());
+                Category retrievedCategory=queryHelper.getCategoryMethod(userDto.getCategoryId());
+                Course retrievedCourse=queryHelper.getCourseMethod(userDto.getCourseId());
+                List<Category> categories=retrievedFaculty.getCategoryList();
+                if(categories.isEmpty()){
+                    for (Category eachCategory:categories
+                         ) {
+                        if(eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())){
+                            List<Course> courses=retrievedCategory.getCourseList();
+                            if(courses.isEmpty()){
+                                throw new Exception("there is no courses for the given category");
+                            }
+                            for (Course eachCourse:courses
+                                 ) {
+                                if(eachCourse.getCourseId().equals(retrievedCourse.getCourseId())){
+                                    resultStatus=true;
+
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    throw new Exception("there is no categories for the given faculty");
+                }
+                break;
+            case "ROLE_STUDENT":
+                Faculty retrievedFaculty1=queryHelper.getFacultyMethod(userDto.getFacultyId());
+                Category retrievedCategory1=queryHelper.getCategoryMethod(userDto.getCategoryId());
+                List<Category> categories1=retrievedFaculty1.getCategoryList();
+                if(categories1.isEmpty()){
+                    throw new Exception("there is no categories for the given faculty");
+
+                }
+                for (Category eachCategory:categories1
+                     ) {
+                    if(eachCategory.getCategoryId().equals(retrievedCategory1)){
+                        resultStatus=true;
+
+                    }
+                }
+                break;
+
+        }
+        return resultStatus;
+    }
+
+
 }
 
 

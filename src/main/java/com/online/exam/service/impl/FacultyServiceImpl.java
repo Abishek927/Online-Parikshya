@@ -1,38 +1,31 @@
 package com.online.exam.service.impl;
-
 import com.online.exam.dto.FacultyDto;
-import com.online.exam.exception.ResourceNotFoundException;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;
 import com.online.exam.repo.FacultyRepo;
-import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.UserRepo;
+import com.online.exam.service.CategoryService;
 import com.online.exam.service.FacultyService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class FacultyServiceImpl implements FacultyService {
     @Autowired
     private FacultyRepo facultyRepo;
     @Autowired
-    private RoleRepo roleRepo;
-
-    @Autowired
     private ModelMapper modelMapper;
     @Autowired
     private UserRepo userRepo;
-
-
     @Autowired
     private QueryHelper queryHelper;
+    @Autowired
+    private CategoryService categoryService;
     @Override
     public FacultyDto createFaculty(Principal principal,FacultyDto facultyDto) throws Exception {
         User retrievedUser=queryHelper.getUserMethod(facultyDto.getUserId());
@@ -43,11 +36,8 @@ public class FacultyServiceImpl implements FacultyService {
                 throw new Exception("Faculty with the given faculty name " + facultyDto.getFacultyName() + "already exists!!");
             } else {
                 retrievedFaculty = this.modelMapper.map(facultyDto, Faculty.class);
-
                 retrievedUser.getFaculties().add(retrievedFaculty);
                 retrievedFaculty.setUsers(Set.of(retrievedUser));
-
-
                 retrievedFaculty = this.facultyRepo.save(retrievedFaculty);
 
             }
@@ -117,13 +107,30 @@ public class FacultyServiceImpl implements FacultyService {
     }
 
     @Override
-    public List<FacultyDto> getAllFaculty() {
+    public List<FacultyDto> getAllFaculty() throws Exception {
+        List<FacultyDto> facultyDtos=new ArrayList<>();
+        FacultyDto facultyDto=new FacultyDto();
         List<Faculty> faculties=facultyRepo.findAll();
-            if(!faculties.isEmpty()) {
-                return faculties.stream().map(faculty -> this.modelMapper.map(faculty, FacultyDto.class)).collect(Collectors.toList());
+            if(faculties.isEmpty()) {
+                return null;
+            }else{
+                for (Faculty eachFaculty:faculties
+                     ) {
+                    facultyDto.setFacultyId(eachFaculty.getFacultyId());
+                    facultyDto.setFacultyName(eachFaculty.getFacultyName());
+                    facultyDto.setCategoryDtos(categoryService.readCategoryByFaculty(eachFaculty.getFacultyId()));
+                    facultyDtos.add(facultyDto);
+                }
             }
 
         return null;
+    }
+
+    @Override
+    public Integer countFaculties(Principal principal) {
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
+        Integer facultyCount=(loggedInUser.getFaculties().size()>0)?facultyRepo.countFacultiesByUsers(Set.of(loggedInUser)):0;
+        return facultyCount;
     }
 
 

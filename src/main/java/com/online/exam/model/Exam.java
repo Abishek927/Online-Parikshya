@@ -10,6 +10,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -38,26 +39,19 @@ public class Exam {
     @Column(name="exam_started_time")
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private Date examStartedTime;
-
     @Column(name="exam_ended_time")
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private Date examEndedTime;
     @Column(name="exam_status")
-    private Boolean examStatus=Boolean.TRUE;
-
+    private Boolean examStatus=Boolean.FALSE;
     @Column(name="exam_total_marks")
     private int examTotalMarks;
-
+    private String examMode;
     private String questionPattern;
-
     private Boolean deleted=Boolean.FALSE;
-
-
-
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "exam")
     @JsonManagedReference(value = "exam_table")
     private List<ExamAttempt> examAttemptList;
-
     @ManyToOne( cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.EAGER)
     @JoinColumn(name="course_id_fk",referencedColumnName = "course_id")
     @JsonBackReference(value = "course_table")
@@ -66,7 +60,7 @@ public class Exam {
     @JsonManagedReference(value = "exam_table")
     private List<ExamQuestion> examQuestions;
 
-   @ManyToMany( cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.LAZY)
+   @ManyToMany( cascade =CascadeType.ALL,fetch = FetchType.LAZY)
    @JoinTable(name="user_exam",
    joinColumns = @JoinColumn(name="exam_id_fk",referencedColumnName = "exam_id")
            ,inverseJoinColumns = @JoinColumn(name="user_id_fk",referencedColumnName = "user_id")

@@ -2,24 +2,21 @@ package com.online.exam.controller;
 
 import com.online.exam.dto.FacultyDto;
 import com.online.exam.helper.ApiResponse;
-
-
 import com.online.exam.service.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.List;
-
-
 @RestController
+@RequestMapping("/faculty")
 public class FacultyController {
     @Autowired
     private FacultyService facultyService;
-    @PostMapping("/faculty/create")
+    @PostMapping("/create")
     @PreAuthorize("hasAuthority('manage_faculty')")
     ResponseEntity<?> createFacultyController(@RequestBody FacultyDto faculty, Principal principal) throws Exception {
 
@@ -41,7 +38,7 @@ public class FacultyController {
         return new ResponseEntity<>(new ApiResponse(responseMessage,false),HttpStatusCode.valueOf(200));
     }
 
-    @PutMapping("/faculty/update")
+    @PutMapping("/update")
     @PreAuthorize("hasAuthority('manage_faculty')")
     ResponseEntity<?> updateFacultyController(@RequestBody FacultyDto faculty,Principal principal) throws Exception {
         FacultyDto updateFaculty=this.facultyService.updateFaculty(faculty,principal);
@@ -51,7 +48,7 @@ public class FacultyController {
             return new ResponseEntity<>(updateFaculty,HttpStatusCode.valueOf(200));
     }
 
-    @GetMapping("/faculty/read")
+    @GetMapping("/read")
     @PreAuthorize("hasAuthority('manage_faculty')")
     ResponseEntity<?> getFacultyByNameController(@RequestParam("facultyName")String facultyName,Principal principal){
         FacultyDto facultyByName=this.facultyService.getFacultyByName(facultyName,principal);
@@ -62,13 +59,20 @@ public class FacultyController {
         return new ResponseEntity<>(facultyByName,HttpStatusCode.valueOf(200));
     }
 
-    @GetMapping("/faculty/getAll")
+    @GetMapping("/getAll")
     ResponseEntity<?> getAllFacultyController(){
         List<FacultyDto> facultyDtos=this.facultyService.getAllFaculty();
         if(facultyDtos!=null){
             return new ResponseEntity<>(facultyDtos,HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse("there is no faculties!!!",false),HttpStatusCode.valueOf(200));
+    }
+
+    @GetMapping("/count")
+    @PreAuthorize("hasAuthority('manage_faculty')")
+    ResponseEntity<?> countController(Principal principal){
+        Integer integer=this.facultyService.countFaculties(principal);
+        return ResponseEntity.status(HttpStatus.OK).body(integer);
     }
 
 

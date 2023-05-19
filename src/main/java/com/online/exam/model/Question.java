@@ -34,16 +34,16 @@ public class Question {
 
     @Column(name="question_marks",nullable = false)
     private int questionMarks;
+    @Column(name="answer_choice")
+    private String answerChoice;
 
-    @Enumerated(EnumType.ORDINAL)
-    private AnswerChoice answerChoice;
-
+    private boolean selected=false;
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id_fk",referencedColumnName = "course_id")
     @JsonBackReference(value = "course_table")
     private Course course;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name="answer_id_fk",referencedColumnName = "answer_id")
     private Answer answer;
   @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "question")

@@ -4,13 +4,16 @@ import com.online.exam.dto.CourseDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/course")
@@ -49,14 +52,11 @@ public class CourseController {
         return new ResponseEntity<>(courseDtos,HttpStatusCode.valueOf(200));
 
     }
-    @PutMapping("/update/{cId}")
+    @PutMapping("/update")
     @PreAuthorize("hasAuthority('manage_course')")
-    ResponseEntity<CourseDto> updateCourseController(@RequestBody CourseDto courseDto,Principal principal) throws Exception {
-            CourseDto course=this.courseService.updateCourse(courseDto,principal);
-
-
-
-        return new ResponseEntity<>(course,HttpStatusCode.valueOf(200));
+    ResponseEntity<?> updateCourseController(@RequestBody CourseDto courseDto,Principal principal) throws Exception {
+            String message=this.courseService.updateCourse(courseDto,principal);
+            return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
     }
     @GetMapping("/read/{cId}")
     ResponseEntity<?> getCourseByIdController(@PathVariable Long cId) throws Exception {
@@ -72,6 +72,30 @@ public class CourseController {
             return new ResponseEntity<>(courseDtos,HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse("there is no category created by the loggedIn user",false),HttpStatusCode.valueOf(200));
+    }
+
+
+    @GetMapping("/read/count")
+    @PreAuthorize("hasAuthority('manage_course')")
+    ResponseEntity<Map<String,Integer>> getCourseCount(Principal principal){
+        Integer countValue=courseService.countCourseByUser(principal);
+        Map<String,Integer> message=new HashMap<>();
+        if(countValue==0){
+            message.put("No course created by user!!!",countValue);
+            return ResponseEntity.status(HttpStatus.OK).body(message);
+        }
+        message.put("there is course created by the user",countValue);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+    }
+    @GetMapping("/readAllForStudent")
+    @PreAuthorize("hasAuthority('view_courses')")
+    ResponseEntity<?> getCoursesForStudent(Principal principal){
+        Map<Integer,List<CourseDto>> courseDtos=courseService.getCoursesByCategoryForStudent(principal);
+        if(courseDtos.containsKey(500)){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(courseDtos);
+        }
+    return ResponseEntity.status(HttpStatus.OK).body(courseDtos);
+
     }
 
 

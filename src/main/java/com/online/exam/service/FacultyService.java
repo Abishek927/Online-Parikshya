@@ -14,5 +14,6 @@ public interface FacultyService {
     FacultyDto updateFaculty(FacultyDto facultyDto,Principal principal) throws Exception;
 
     FacultyDto getFacultyByName(String name,Principal principal);
-    List<FacultyDto> getAllFaculty();
+    List<FacultyDto> getAllFaculty() throws Exception;
+    Integer countFaculties(Principal principal);
 }
