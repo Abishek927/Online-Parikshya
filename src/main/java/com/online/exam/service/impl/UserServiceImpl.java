@@ -66,16 +66,22 @@ public class UserServiceImpl implements UserService {
         User user=new User();
         if (retrievedRole.getRoleName().equals("ROLE_STUDENT")) {
                          user=setUserBasicAttribute(userDto);
+            user.setUserRoles(Set.of(retrievedRole));
+            retrievedRole.getUserSet().add(user);
                          userRepo.save(user);
                          message.put(200,"Student created successfully");
 
 
         } else if (retrievedRole.getRoleName().equals("ROLE_TEACHER")) {
             user=setUserBasicAttribute(userDto);
+            user.setUserRoles(Set.of(retrievedRole));
+            retrievedRole.getUserSet().add(user);
             userRepo.save(user);
             message.put(200,"teacher created successfully!!!");
         }else if(retrievedRole.getRoleName().equals("ROLE_ADMIN")){
             user=setUserBasicAttribute(userDto);
+            user.setUserRoles(Set.of(retrievedRole));
+            retrievedRole.getUserSet().add(user);
             userRepo.save(user);
             message.put(200,"admin created successfully");
 
@@ -136,10 +142,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
-    public UserDto getUserDto(User user) {
-        return null;
-    }
+
 
     // @Override
     /*public UserDto updateUser(Long userId, UserDto updatedUser) throws Exception {
@@ -281,7 +284,7 @@ public class UserServiceImpl implements UserService {
     }*/
 
 
-/*    public UserDto getUserDto(User user) {
+   public UserDto getUserDto(User user) {
         UserDto userDto = new UserDto();
         userDto.setUserEmail(user.getUserEmail());
         userDto.setEnabled(user.getIsEnabled());
@@ -291,12 +294,13 @@ public class UserServiceImpl implements UserService {
         userDto.setUserGender(user.getUserGender());
         userDto.setUserRollNo(user.getUserRollNo());
         userDto.setUserPassword(user.getUserPassword());
+        //userDto.setUserStatus(user.getUserStatus());
         for (Role eachRole:user.getUserRoles()
              ) {
-            userDto.setRoleId(eachRole.getRoleId());
+            userDto.setRoleName(eachRole.getRoleName());
         }
         return userDto;
-    }*/
+    }
 
 
     private User setUserBasicAttribute(UserDto userDto) throws Exception {
@@ -325,6 +329,7 @@ public class UserServiceImpl implements UserService {
                 user.setUserName(userDto.getUserName().toLowerCase());
                 user.setUserPassword(passwordEncoder.encode(userDto.getUserPassword()));
                 user.setUserStatus(UserStatus.approved);
+                user.setIsEnabled(true);
                 break;
         }
         return user;

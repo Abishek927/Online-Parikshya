@@ -60,7 +60,7 @@ public class FacultyController {
     }
 
     @GetMapping("/getAll")
-    ResponseEntity<?> getAllFacultyController(){
+    ResponseEntity<?> getAllFacultyController() throws Exception {
         List<FacultyDto> facultyDtos=this.facultyService.getAllFaculty();
         if(facultyDtos!=null){
             return new ResponseEntity<>(facultyDtos,HttpStatusCode.valueOf(200));
