@@ -1,6 +1,5 @@
 package com.online.exam.service.impl;
 
-import com.online.exam.dto.CategoryDto;
 import com.online.exam.dto.CourseDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.*;

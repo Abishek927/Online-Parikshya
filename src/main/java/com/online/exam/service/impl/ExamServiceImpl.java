@@ -1,16 +1,15 @@
 package com.online.exam.service.impl;
 import com.online.exam.dto.ExamDto;
 import com.online.exam.dto.QuestionDto;
-import com.online.exam.dto.StudentExamDto;
+import com.online.exam.dto.SelectedChoiceDto;
+import com.online.exam.dto.SubmitAnswerDto;
 import com.online.exam.helper.ExamHelper;
 import com.online.exam.helper.HelperClass;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.helper.QuestionHelper;
 import com.online.exam.model.*;
-import com.online.exam.repo.ExamQuestionRepo;
-import com.online.exam.repo.ExamRepo;
-import com.online.exam.repo.QuestionRepo;
-import com.online.exam.repo.UserRepo;
+import com.online.exam.model.StudentExamAnswer;
+import com.online.exam.repo.*;
 import com.online.exam.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,8 @@ public class ExamServiceImpl implements ExamService {
     private UserRepo userRepo;
     @Autowired
     private ExamQuestionRepo examQuestionRepo;
+    @Autowired
+    private CourseRepo courseRepo;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
@@ -202,10 +203,22 @@ public class ExamServiceImpl implements ExamService {
         messageMap.put(500,"inavlid exam mode for updation");
         return messageMap;
     }
-
+    @Transactional(rollbackFor = {Exception.class,RuntimeException.class})
     @Override
-    public Map<Integer, String> startExam(StudentExamDto studentExamDto, Principal principal) {
-        if(checkExamAndStudentDetails(studentExamDto,principal)){
+    public Map<Integer, String> giveExam(SubmitAnswerDto submitAnswerDto, Principal principal) {
+        Map<Integer,String> message=new HashMap<>();
+        StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
+        SubmitAnswer submitAnswer=new SubmitAnswer();
+        if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
+
+            studentExamAnswer.setExam(queryHelper.getExamMethod(submitAnswerDto.getExamId()));
+            studentExamAnswer.setUser(getStudent(principal));
+            studentExamAnswer.setCourse(queryHelper.getCourseMethod(submitAnswerDto.getCourseId()));
+
+
+        }else {
+            message.put(500,"Something wrong with the provided details of student,course and exam!!!");
+            return message;
 
         }
 
@@ -276,21 +289,92 @@ public class ExamServiceImpl implements ExamService {
     }
 
 
-    private boolean checkExamAndStudentDetails(StudentExamDto examDto,Principal principal){
-        boolean resultStatus=false;
-        User loggedInUser=userRepo.findByUserEmail(principal.getName());
-        Course course=queryHelper.getCourseMethod(examDto.getCourseId());
-        Optional<Exam> exam=examRepo.findById(examDto.getExamId());
-        Set<Category> categories=loggedInUser.getCategories();
-        for (Category eachCategory:categories
+
+    private User getStudent(Principal principal){
+        return userRepo.findByUserEmail(principal.getName());
+    }
+
+    private boolean checkCourseExamStudentProvided(SubmitAnswerDto submitAnswerDto,Principal principal){
+        boolean status=false;
+        User loggedInStudent=getStudent(principal);
+        Set<Category> categories=loggedInStudent.getCategories();
+        Course retrievedCourse=queryHelper.getCourseMethod(submitAnswerDto.getCourseId());
+        outerLoop:for (Category eachCategory:categories
              ) {
             List<Course> courses=eachCategory.getCourseList();
-            if(!courses.isEmpty()&&courses.contains(course)&&course.getExams().contains(exam.get())){
-                resultStatus=true;
+            if(courses.contains(retrievedCourse)){
+                if(checkExamProvided(retrievedCourse,submitAnswerDto.getExamId())){
+                    status=true;
+                    break outerLoop;
+                }
+
             }
+
         }
-        return resultStatus;
+        return status;
+
     }
+
+    private boolean checkExamProvided(Course course,Long examId){
+        boolean status=false;
+        Exam retrievedExam=queryHelper.getExamMethod(examId);
+        List<Exam> exams=course.getExams();
+        for (Exam eachExam:exams
+             ) {
+            if(eachExam.getExamId().equals(examId)){
+                status=true;
+                break;
+            }
+
+        }
+        return status;
+    }
+    @Transactional(rollbackFor = RuntimeException.class)
+    protected StudentExamAnswer checkAndSetQuestionWithChoice(SubmitAnswerDto submitAnswerDto) throws Exception {
+        StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
+        List<Question> questions=questionRepo.findQuestionByExam(submitAnswerDto.getExamId());
+        List<SubmitAnswer> submitAnswers=new ArrayList<>();
+        SubmitAnswer submitAnswer=new SubmitAnswer();
+        List< SelectedChoiceDto> selectedChoiceDtos =submitAnswerDto.getSelectedChoiceDtos();
+        if(selectedChoiceDtos.isEmpty()){
+            throw new Exception("student submit the exam without selecting atleast one question");
+        }
+        if(checkQuestionIdWithSubmittedQuestionIdByStudent(questions,selectedChoiceDtos)){
+            for (SelectedChoiceDto eachSelectedDto:selectedChoiceDtos
+                 ) {
+                submitAnswer.setQuestionId(eachSelectedDto.getQuestionId());
+                submitAnswer.setAnswerContent(eachSelectedDto.getSelectedChoice());
+                submitAnswer.setStudentExamAnswer(studentExamAnswer);
+                submitAnswers.add(submitAnswer);
+                
+            }
+            studentExamAnswer.setSubmitAnswers(submitAnswers);
+        }
+        return studentExamAnswer;
+        
+    }
+    
+    private boolean checkQuestionIdWithSubmittedQuestionIdByStudent(List<Question> questions,List<SelectedChoiceDto> selectedChoiceDtos){
+        boolean status=false;
+        List<Long> retrievedQuestionId=new ArrayList<>();
+        List<Long> submittedQuestionId=new ArrayList<>();
+        for (Question eachRetrievedQuestion:questions
+             ) {
+            retrievedQuestionId.add(eachRetrievedQuestion.getQuestionId());
+        }
+        for (SelectedChoiceDto eachSelectedChoiceDto:selectedChoiceDtos
+             ) {
+            submittedQuestionId.add(eachSelectedChoiceDto.getQuestionId());
+        }
+        if(retrievedQuestionId.containsAll(submittedQuestionId)){
+            status=true;
+        }else {
+            throw new RuntimeException("something went wrong with the provided questionIds");
+        }
+        return status;
+        
+    }
+
 
 
 

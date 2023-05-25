@@ -15,7 +15,8 @@ import java.util.Set;
 @Repository
 public interface QuestionRepo extends JpaRepository<Question,Long> {
     List<Question> findByCourse(Course course);
-    Question findByQuestionTitle(String name);
+    @Query(value = "select q.questionId from Question q inner join ExamQuestion eq on eq.question.questionId=q.questionId inner join Exam  e on e.examId=eq.exam.examId where e.examId=?1",nativeQuery = true)
+  List<Question> findQuestionByExam(Long examId);
 
 
     @Modifying

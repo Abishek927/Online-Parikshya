@@ -2,7 +2,7 @@ package com.online.exam.service;
 
 
 import com.online.exam.dto.ExamDto;
-import com.online.exam.dto.StudentExamDto;
+import com.online.exam.dto.SubmitAnswerDto;
 
 import java.security.Principal;
 import java.util.List;
@@ -14,7 +14,7 @@ public interface ExamService {
     List<ExamDto> getExamByCourse(Long courseId);
     Map<Integer,String> updateExam(ExamDto examDto, Principal principal) throws Exception;
 
-    Map<Integer,String> startExam(StudentExamDto studentExamDto,Principal principal);
+    Map<Integer,String> giveExam(SubmitAnswerDto submitAnswerDto,Principal principal);
 
 
 }
