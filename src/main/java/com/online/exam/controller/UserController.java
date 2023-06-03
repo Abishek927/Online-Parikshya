@@ -77,7 +77,7 @@ public class UserController {
 
     }
 */
-    @GetMapping("/approveUser/{userId}")
+    @PostMapping("/approveUser/{userId}")
     @PreAuthorize("hasAuthority('approve_user')")
     public ResponseEntity<ApiResponse> approveUserController(@PathVariable Long userId){
         String message=this.userService.approveUser(userId);
@@ -117,7 +117,8 @@ public class UserController {
     }
 
     @PostMapping(path = "/login",consumes = {MediaType.APPLICATION_JSON_VALUE},produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<UserDto> login(@RequestBody UserDto userDto) throws Exception {
+    public ResponseEntity<String> login(@RequestBody UserDto userDto) throws Exception {
+
         String userName= userDto.getUserEmail();
         String password=userDto.getUserPassword();
         UserDetails userDetails=this.customUserDetailService.loadUserByUsername(userName);
@@ -128,7 +129,7 @@ public class UserController {
             String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user,roleRepo));
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + jwtToken);
-            return ResponseEntity.ok().headers(headers).body(user);
+            return ResponseEntity.ok().headers(headers).body("Bearer "+jwtToken);
         }else{
             throw new Exception("Invalid userststatus to generate token");
         }
