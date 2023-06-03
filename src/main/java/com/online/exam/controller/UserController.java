@@ -116,7 +116,7 @@ public class UserController {
                 return new ResponseEntity<>(allApprovedTeacher,HttpStatusCode.valueOf(200));
     }
 
-    @PostMapping(path = "/login",consumes = {MediaType.APPLICATION_JSON_VALUE},produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(path = "/login")
     public ResponseEntity<String> login(@RequestBody UserDto userDto) throws Exception {
 
         String userName= userDto.getUserEmail();
