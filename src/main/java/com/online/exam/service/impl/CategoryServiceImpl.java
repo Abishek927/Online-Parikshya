@@ -37,7 +37,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CourseService courseService;
 
-
+    public CategoryServiceImpl(CourseService courseService) {
+        this.courseService = courseService;
+    }
 
     @Override
      public CategoryDto createCategory(CategoryDto categoryDto, Principal principal) throws Exception {
@@ -131,7 +133,7 @@ public class CategoryServiceImpl implements CategoryService {
                    }
                }
 
-        return null;
+        return categoryDtos;
     }
     @Transactional(readOnly = true)
     @Override

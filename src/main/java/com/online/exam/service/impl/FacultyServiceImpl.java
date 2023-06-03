@@ -26,6 +26,11 @@ public class FacultyServiceImpl implements FacultyService {
     private QueryHelper queryHelper;
     @Autowired
     private CategoryService categoryService;
+
+    public FacultyServiceImpl(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+
     @Override
     public FacultyDto createFaculty(Principal principal,FacultyDto facultyDto) throws Exception {
         User retrievedUser=queryHelper.getUserMethod(facultyDto.getUserId());
@@ -123,7 +128,7 @@ public class FacultyServiceImpl implements FacultyService {
                 }
             }
 
-        return null;
+        return facultyDtos;
     }
 
     @Override

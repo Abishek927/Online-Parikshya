@@ -32,6 +32,8 @@ public class ExamServiceImpl implements ExamService {
     private ExamQuestionRepo examQuestionRepo;
     @Autowired
     private CourseRepo courseRepo;
+    @Autowired
+    private StudentExamAnswerRepo studentExamAnswerRepo;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
