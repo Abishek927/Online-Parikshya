@@ -44,8 +44,7 @@ public class User implements Serializable {
     @Column(name = "user_date_of_birth")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate userDateOfBirth;
-    @Enumerated(EnumType.STRING)
-    private UserStatus userStatus;
+    private String userStatus;
     private Boolean isEnabled = Boolean.FALSE;
 
 

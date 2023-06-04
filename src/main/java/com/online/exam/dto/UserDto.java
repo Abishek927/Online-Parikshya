@@ -23,8 +23,7 @@ public class UserDto {
     private boolean enabled;
     private String userContactNumber;
     private String userGender;
-    @Enumerated(EnumType.STRING)
-    private UserStatus userStatus;
+    private String userStatus;
     private LocalDate userDateOfBirth;
     private String roleName;
     private Long facultyId;

@@ -107,8 +107,8 @@ public class UserServiceImpl implements UserService {
     public String deleteUser(Long userId) {
         String message="";
         User retrievedUser=queryHelper.getUserMethod(userId);
-      UserStatus userStatus=retrievedUser.getUserStatus();
-      if(userStatus.equals(UserStatus.pending)||userStatus.equals(UserStatus.approved)){
+      String userStatus=retrievedUser.getUserStatus();
+      if(userStatus.equals(UserStatus.pending.toString())||userStatus.equals(UserStatus.approved.toString())){
           retrievedUser.setIsEnabled(Boolean.FALSE);
           Set<Faculty> faculties=retrievedUser.getFaculties();
           if(!faculties.isEmpty()){
@@ -187,7 +187,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String approveUser(Long userId) {
        User user= this.userRepo.findById(userId).get();
-       user.setUserStatus(UserStatus.approved);
+       user.setUserStatus(UserStatus.approved.toString());
        user.setIsEnabled(Boolean.TRUE);
        userRepo.save(user);
         return "User approved!!!";
@@ -196,7 +196,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String approveAllUser() {
         this.userRepo.findAll().stream().filter(user -> user.getUserStatus().equals(UserStatus.pending)).forEach(user ->{
-            user.setUserStatus(UserStatus.approved);
+            user.setUserStatus(UserStatus.approved.toString());
             user.setIsEnabled(Boolean.TRUE);
             userRepo.save(user);
 
@@ -207,7 +207,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String rejectUser(Long userId) {
         User user=this.userRepo.findById(userId).get();
-        user.setUserStatus(UserStatus.rejected);
+        user.setUserStatus(UserStatus.rejected.toString());
         userRepo.save(user);
         return "User Rejected!!!";
     }
@@ -215,7 +215,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String rejectAll() {
         this.userRepo.findAll().stream().filter(user -> user.getUserStatus().equals(UserStatus.pending)).forEach(user -> {
-            user.setUserStatus(UserStatus.rejected);
+            user.setUserStatus(UserStatus.rejected.toString());
             userRepo.save(user);
         });
         return "Reject All User";
@@ -254,6 +254,64 @@ public class UserServiceImpl implements UserService {
 
         List<UserDto> userDtos=users.stream().map(user -> this.modelMapper.map(user,UserDto.class)).collect(Collectors.toList());
 
+        return userDtos;
+    }
+
+    @Override
+    public List<UserDto> viewPendingTeacher() {
+        List<UserDto> userDtos=new ArrayList<>();
+        List<User> users=userRepo.findPendingTeacher("pending");
+        if(users.isEmpty()){
+            return null;
+        }
+        for (User eachPendingUser:users
+             ) {
+            Set<Role> userRoles=eachPendingUser.getUserRoles();
+            for (Role eachRole:userRoles
+                 ) {
+                if(eachRole.getRoleName().equals("ROLE_TEACHER")){
+                    UserDto userDto=new UserDto();
+                    userDto.setUserName(eachPendingUser.getUserName());
+                    userDto.setUserEmail(eachPendingUser.getUserEmail());
+                    userDto.setUserPassword(eachPendingUser.getUserPassword());
+                    userDto.setUserStatus(eachPendingUser.getUserStatus());
+                    userDto.setRoleName(eachRole.getRoleName());
+                    userDto.setUserContactNumber(eachPendingUser.getUserContactNumber());
+                    userDtos.add(userDto);
+                }
+            }
+
+        }
+
+        return userDtos;
+    }
+
+    @Override
+    public List<UserDto> viewPendingStudent() {
+        List<UserDto> userDtos=new ArrayList<>();
+        List<User> users=userRepo.findPendingStudent("pending");
+        if(users.isEmpty()){
+            return null;
+        }
+        for (User eachPendingStudent:users
+             ) {
+            Set<Role> userRoles=eachPendingStudent.getUserRoles();
+            for (Role eachRole:userRoles
+                 ) {
+                if(eachRole.getRoleName().equals("ROLE_STUDENT")){
+                        UserDto userDto=new UserDto();
+                        userDto.setUserEmail(eachPendingStudent.getUserEmail());
+                        userDto.setUserName(eachPendingStudent.getUserName());
+                        userDto.setUserStatus(eachPendingStudent.getUserStatus().toString());
+                        userDto.setRoleName(eachRole.getRoleName());
+                        userDto.setUserGender(eachPendingStudent.getUserGender());
+                        userDto.setUserContactNumber(eachPendingStudent.getUserContactNumber());
+                        userDtos.add(userDto);
+                }
+
+            }
+
+        }
         return userDtos;
     }
 
@@ -312,7 +370,7 @@ public class UserServiceImpl implements UserService {
                 user.setUserPassword(passwordEncoder.encode(userDto.getUserPassword()));
                 user.setUserEmail(userDto.getUserEmail().toLowerCase());
                 user.setUserContactNumber(userDto.getUserContactNumber());
-                user.setUserStatus(UserStatus.pending);
+                user.setUserStatus(UserStatus.pending.toString());
                 break;
             case "ROLE_STUDENT":
                 user=setUserAdditionalAttribute(userDto);
@@ -322,13 +380,13 @@ public class UserServiceImpl implements UserService {
                 user.setUserEmail(userDto.getUserEmail().toLowerCase());
                 user.setUserGender(userDto.getUserGender());
                 user.setUserDateOfBirth(userDto.getUserDateOfBirth());
-                user.setUserStatus(UserStatus.pending);
+                user.setUserStatus(UserStatus.pending.toString());
                 break;
             case "ROLE_ADMIN":
                 user.setUserEmail(userDto.getUserEmail().toLowerCase());
                 user.setUserName(userDto.getUserName().toLowerCase());
                 user.setUserPassword(passwordEncoder.encode(userDto.getUserPassword()));
-                user.setUserStatus(UserStatus.approved);
+                user.setUserStatus(UserStatus.approved.toString());
                 user.setIsEnabled(true);
                 break;
         }

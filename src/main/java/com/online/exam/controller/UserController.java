@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +145,30 @@ public class UserController {
             throw new Exception("user is disabled!!!");
         }
     }
+
+    @GetMapping("/readAllTeacher")
+    @PreAuthorize("hasAuthority('read_teacher')")
+    ResponseEntity<?> getAllTeacher(){
+        List<UserDto> userDtos=userService.viewPendingTeacher();
+        if(userDtos.isEmpty()){
+            return ResponseEntity.status(HttpStatus.OK).body("No pending teacher found");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(userDtos);
+
+    }
+
+    @GetMapping("/readAllStudent")
+    @PreAuthorize("hasAuthority('read_student')")
+    ResponseEntity<?> getAllStudent(){
+        List<UserDto> userDtos=userService.viewPendingStudent();
+        if(userDtos.isEmpty()){
+            return ResponseEntity.status(HttpStatus.OK).body("No pending student found");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(userDtos);
+
+    }
+
+
 
 
 }

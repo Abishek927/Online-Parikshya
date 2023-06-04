@@ -5,6 +5,7 @@ import com.online.exam.model.Role;
 import com.online.exam.model.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,9 @@ public interface UserService  {
 
     List<UserDto> viewAllApprovedStudent();
     List<UserDto> viewAllApprovedTeacher();
+
+    List<UserDto> viewPendingTeacher();
+    List<UserDto> viewPendingStudent();
 
 
 }
