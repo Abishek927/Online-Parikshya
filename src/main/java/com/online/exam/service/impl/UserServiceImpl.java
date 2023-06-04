@@ -432,7 +432,7 @@ public class UserServiceImpl implements UserService {
                 Category retrievedCategory=queryHelper.getCategoryMethod(userDto.getCategoryId());
                 Course retrievedCourse=queryHelper.getCourseMethod(userDto.getCourseId());
                 List<Category> categories=retrievedFaculty.getCategoryList();
-                if(categories.isEmpty()){
+                if(!categories.isEmpty()){
                     for (Category eachCategory:categories
                          ) {
                         if(eachCategory.getCategoryId().equals(retrievedCategory.getCategoryId())){
