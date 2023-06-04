@@ -464,7 +464,7 @@ public class UserServiceImpl implements UserService {
                 }
                 for (Category eachCategory:categories1
                      ) {
-                    if(eachCategory.getCategoryId().equals(retrievedCategory1)){
+                    if(eachCategory.getCategoryId().equals(retrievedCategory1.getCategoryId())){
                         resultStatus=true;
 
                     }
