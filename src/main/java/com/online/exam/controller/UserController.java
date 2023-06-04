@@ -126,7 +126,7 @@ public class UserController {
         UserDetails userDetails=this.customUserDetailService.loadUserByUsername(userName);
         this.authenticate(userName,password,userDetails.getAuthorities());
         UserDto user = this.userService.getUserByEmail(userDto.getUserEmail());
-        if(user.getUserStatus().equals(UserStatus.approved) && user.isEnabled()==Boolean.TRUE) {
+        if(user.getUserStatus().equals(UserStatus.approved.toString()) && user.isEnabled()==Boolean.TRUE) {
             user.setUserPassword(null);
             String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user,roleRepo));
             String jwt="Bearer "+jwtToken;
