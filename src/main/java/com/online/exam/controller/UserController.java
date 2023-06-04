@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -118,8 +119,8 @@ public class UserController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<String> login(@RequestBody UserDto userDto) throws Exception {
-
+    public ResponseEntity<Map<String,String>> login(@RequestBody UserDto userDto) throws Exception {
+        Map<String,String> message=new HashMap<>();
         String userName= userDto.getUserEmail();
         String password=userDto.getUserPassword();
         UserDetails userDetails=this.customUserDetailService.loadUserByUsername(userName);
@@ -128,9 +129,10 @@ public class UserController {
         if(user.getUserStatus().equals(UserStatus.approved) && user.isEnabled()==Boolean.TRUE) {
             user.setUserPassword(null);
             String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user,roleRepo));
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", "Bearer " + jwtToken);
-            return ResponseEntity.ok().headers(headers).body("Bearer "+jwtToken);
+            String jwt="Bearer "+jwtToken;
+            message.put("status:","200");
+            message.put("JwtToken:",jwt);
+            return ResponseEntity.ok().body(message);
         }else{
             throw new Exception("Invalid userststatus to generate token");
         }
