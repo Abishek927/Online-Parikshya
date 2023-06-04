@@ -426,7 +426,7 @@ public class UserServiceImpl implements UserService {
     }
     private boolean checkProvidedAttribute(UserDto userDto) throws Exception {//check whether the provided attribute is coorect or not
         boolean resultStatus=false;
-        switch (userDto.getUserName()){
+        switch (userDto.getRoleName()){
             case "ROLE_TEACHER":
                 Faculty retrievedFaculty=queryHelper.getFacultyMethod(userDto.getFacultyId());
                 Category retrievedCategory=queryHelper.getCategoryMethod(userDto.getCategoryId());
