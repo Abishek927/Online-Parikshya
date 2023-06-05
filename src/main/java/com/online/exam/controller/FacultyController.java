@@ -1,3 +1,4 @@
+/*
 package com.online.exam.controller;
 
 import com.online.exam.dto.FacultyDto;
@@ -79,3 +80,4 @@ public class FacultyController {
 
 
 }
+*/
