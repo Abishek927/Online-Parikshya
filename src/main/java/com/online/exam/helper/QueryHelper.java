@@ -26,6 +26,8 @@ public class  QueryHelper {
     private ExamRepo examRepo;
     @Autowired
     private QuestionRepo questionRepo;
+    @Autowired
+    private StudentExamAnswerRepo studentExamAnswerRepo;
 
 
     public    Category getCategoryMethod(Long catId){
@@ -54,5 +56,8 @@ public class  QueryHelper {
 
     public Question getQuestionMethod(Long qusId){
         return this.questionRepo.findById(qusId).orElseThrow(()->new ResourceNotFoundException("question","questionId",qusId));
+    }
+    public StudentExamAnswer getStudentExamAnswer(Long seaId){
+        return studentExamAnswerRepo.findById(seaId).orElseThrow(()->new ResourceNotFoundException("studentExamAnswer","seaId",seaId));
     }
 }

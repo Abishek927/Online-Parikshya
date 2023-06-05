@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "reslt")
+@Table(name = "result_table")
 public class Result {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,9 +22,15 @@ public class Result {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="student_id_fk",referencedColumnName = "user_id")
     private User user;
+    @Column(name="marks_obtained")
     private Integer marksObtained;
+    @Column(name="result_status")
     private String resultStatus;
-    private LocalDate date;//the date on which the exam was conducted
+    @Column(name="correct_choice")
+    private Integer correctChoice;
+    private float percentage;
+    @Column(name = "exam_conducted_date")
+    private LocalDate examConductedDate;//the date on which the exam was conducted
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "exam_id_fk",referencedColumnName = "exam_id")
     private Exam exam;

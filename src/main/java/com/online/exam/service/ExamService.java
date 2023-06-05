@@ -13,8 +13,9 @@ public interface ExamService {
     Map<Integer,String>deleteExam(Long examId, Principal principal) throws Exception;
     List<ExamDto> getExamByCourse(Long courseId);
     Map<Integer,String> updateExam(ExamDto examDto, Principal principal) throws Exception;
+    ExamDto startExam(Long courseId,Principal principal);
 
-    Map<Integer,String> giveExam(SubmitAnswerDto submitAnswerDto,Principal principal);
+    Map<Integer,String> submitExam(SubmitAnswerDto submitAnswerDto,Principal principal) throws Exception;
 
 
 }
