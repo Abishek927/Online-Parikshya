@@ -62,7 +62,7 @@ public class UserController {
 
 
     }*/
-    @DeleteMapping("/delete")
+  /*  @DeleteMapping("/delete")
     @PreAuthorize("hasAuthority('delete_user')")
     ResponseEntity<ApiResponse> deleteUser(@RequestParam("userId")Long userId){
         String message=this.userService.deleteUser(userId);
@@ -70,7 +70,7 @@ public class UserController {
             return new ResponseEntity<>(new ApiResponse("something went wrong",false),HttpStatusCode.valueOf(500));
         }
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
-    }
+    }*/
  /*   @PutMapping("/update/{userId}")
     @PreAuthorize("hasAuthority('update_user')")
     ResponseEntity<User> updateUser(@PathVariable("userId")Long userId,@RequestBody UserDto userDto){
