@@ -12,11 +12,6 @@ import org.springframework.stereotype.Component;
 
 public class  QueryHelper {
     @Autowired
-    private  CategoryRepo categoryRepo;
-
-    @Autowired
-    private  FacultyRepo facultyRepo;
-    @Autowired
     private  RoleRepo roleRepo;
     @Autowired
     private  UserRepo userRepo;
@@ -28,15 +23,6 @@ public class  QueryHelper {
     private QuestionRepo questionRepo;
     @Autowired
     private StudentExamAnswerRepo studentExamAnswerRepo;
-
-
-    public    Category getCategoryMethod(Long catId){
-        return this.categoryRepo.findById(catId).orElseThrow(()->new ResourceNotFoundException("category","categoryId ",catId));
-    }
-
-    public Faculty getFacultyMethod(Long facultyId){
-        return this.facultyRepo.findById(facultyId).orElseThrow(()->new ResourceNotFoundException("faculty","facultyId ",facultyId));
-    }
 
     public User getUserMethod(Long userId){
         return this.userRepo.findById(userId).orElseThrow(()->new ResourceNotFoundException("user","userId ",userId));

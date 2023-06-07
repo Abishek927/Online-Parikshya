@@ -16,7 +16,6 @@ public class CourseDto {
     private Long courseId;
     private String courseTitle;
     private String courseDesc;
-    private Long categoryId;
     private Long userId;
     private List<ExamDto> exams;
 

@@ -36,15 +36,15 @@ public class ExamHelper {
         return totalTime;
     }
 
-    public List<Question> generateQuestion(List<Question> questions, int questionLimitSize, String questionPattern) throws Exception {
+    public List<Question> generateQuestion(List<Question> questions, int questionLimitSize, String questionPattern,MergeSort mergeSort,User user,QuestionRepo questionRepo) throws Exception {
         List<Question> resultedQuestion = new ArrayList<>();
-        HelperClass helperClass = new HelperClass(questionRepo,user);
+        HelperClass helperClass = new HelperClass(mergeSort,user,questionRepo);
         switch (questionPattern) {
             case "random":
-                resultedQuestion = helperClass.generateRandomQuestion(questions, questionLimitSize);
+                resultedQuestion = helperClass.generateRandomQuestion(questions,questionLimitSize);
                 break;
             case "sort":
-                resultedQuestion = helperClass.generateSortedQuestion(questions, questionLimitSize);
+                resultedQuestion = helperClass.generateSortedQuestion(questions,questionLimitSize,user,mergeSort,questionRepo);
                 break;
         }
         return resultedQuestion;

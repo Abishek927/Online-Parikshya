@@ -61,14 +61,6 @@ public class User implements Serializable {
     private List<ExamAttempt> examAttempts;
 
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_faculty",
-            joinColumns = @JoinColumn(name = "user_id_fk", referencedColumnName = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "faculty_id_fk", referencedColumnName = "faculty_id")
-    )
-    private Set<Faculty> faculties;
-
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_course",
@@ -76,14 +68,6 @@ public class User implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "course_id_fk", referencedColumnName = "course_id")
     )
     private Set<Course> courses;
-
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_category",
-            joinColumns = @JoinColumn(name = "user_id_fk", referencedColumnName = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id_fk", referencedColumnName = "cat_id")
-    )
-    private Set<Category> categories;
 
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "user")

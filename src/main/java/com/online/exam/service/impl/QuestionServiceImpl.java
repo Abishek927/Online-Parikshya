@@ -1,24 +1,18 @@
 package com.online.exam.service.impl;
 
-
-import com.online.exam.dto.AnswerDto;
 import com.online.exam.dto.QuestionDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.helper.QuestionHelper;
 import com.online.exam.model.*;
 import com.online.exam.repo.AnswerRepo;
-
 import com.online.exam.repo.QuestionRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.QuestionService;
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.security.Principal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -31,8 +25,7 @@ public class QuestionServiceImpl implements QuestionService {
     private AnswerRepo answerRepo;
     @Autowired
     private UserRepo userRepo;
-    @Autowired
-    private ModelMapper modelMapper;
+
     @Override
     public String createQuestion(QuestionDto questionDto, Principal principal) throws Exception {
         User retrievedUser = userRepo.findByUserEmail(principal.getName());
@@ -84,7 +77,6 @@ public class QuestionServiceImpl implements QuestionService {
                             }
                                 answer.setAnswerCreated(new Date());
                                 answerRepo.save(answer);
-
                         }
                         this.questionRepo.save(retrievedQuestion);
                         message.put(200,"Question updated successfully");
@@ -116,13 +108,16 @@ public class QuestionServiceImpl implements QuestionService {
         }
         return null;
     }
-
+    @Transactional
     @Override
     public String deleteQuestion(Long qusId,Principal principal){
         String resultMessage = "";
         User loggedInUser=userRepo.findByUserEmail(principal.getName());
         Question retrievedQuestion = this.queryHelper.getQuestionMethod(qusId);
         if(retrievedQuestion.getUser().equals(loggedInUser)) {
+            Answer retrievedQuestionAnswer=retrievedQuestion.getAnswer();
+            answerRepo.delete(retrievedQuestionAnswer);
+            retrievedQuestion.setAnswer(null);
             this.questionRepo.deleteQuestionByQuestionId(retrievedQuestion.getQuestionId());
             resultMessage = "question deleted successfully for the id " + retrievedQuestion.getQuestionId();
         }

@@ -43,15 +43,7 @@ public class CourseController {
 
     }
 
-    @GetMapping("/read/{catId}")
-    ResponseEntity<?> getCourseByCategoryController(@PathVariable Long catId) throws Exception {
-        List<CourseDto> courseDtos=this.courseService.getCoursesByCategory(catId);
-        if(courseDtos.isEmpty()){
-            return new ResponseEntity<>(new ApiResponse("There is no courses for the given category",true),HttpStatusCode.valueOf(200));
-        }
-        return new ResponseEntity<>(courseDtos,HttpStatusCode.valueOf(200));
 
-    }
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('manage_course')")
     ResponseEntity<?> updateCourseController(@RequestBody CourseDto courseDto,Principal principal) throws Exception {
@@ -64,14 +56,13 @@ public class CourseController {
         return new ResponseEntity<>(courseDto,HttpStatusCode.valueOf(200));
     }
     @GetMapping("/readAll")
-    @PreAuthorize("hasAuthority('manage_course')")
-    ResponseEntity<?> getAllCourse(Principal principal)
+    ResponseEntity<?> getAllCourse()
     {
-        List<CourseDto> courseDtos=this.courseService.getAllCourse(principal);
+        List<CourseDto> courseDtos=this.courseService.getAllCourse();
         if(!courseDtos.isEmpty()){
             return new ResponseEntity<>(courseDtos,HttpStatusCode.valueOf(200));
         }
-        return new ResponseEntity<>(new ApiResponse("there is no category created by the loggedIn user",false),HttpStatusCode.valueOf(200));
+        return new ResponseEntity<>(new ApiResponse("there is no courses!!!",false),HttpStatusCode.valueOf(200));
     }
 
 
@@ -87,16 +78,7 @@ public class CourseController {
         message.put("there is course created by the user",countValue);
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
-    @GetMapping("/readAllForStudent")
-    @PreAuthorize("hasAuthority('view_courses')")
-    ResponseEntity<?> getCoursesForStudent(Principal principal){
-        Map<Integer,List<CourseDto>> courseDtos=courseService.getCoursesByCategoryForStudent(principal);
-        if(courseDtos.containsKey(500)){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(courseDtos);
-        }
-    return ResponseEntity.status(HttpStatus.OK).body(courseDtos);
 
-    }
 
 
 

@@ -15,7 +15,6 @@ public class RoleController {
     @Autowired
     private RoleService roleService;
     @PostMapping(path = "/create",consumes = {MediaType.APPLICATION_JSON_VALUE},produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasAuthority('create_role')")
     ResponseEntity<RoleDto> createRoleController(@RequestBody RoleDto roleDto){
         roleDto=roleService.createRole(roleDto);
         return new ResponseEntity<>(roleDto, HttpStatusCode.valueOf(200));

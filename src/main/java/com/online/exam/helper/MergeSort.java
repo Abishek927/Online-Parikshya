@@ -7,18 +7,19 @@ import com.online.exam.repo.QuestionRepo;
 import com.online.exam.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
+@Component
 public class MergeSort {
     public  List<Question> mergeSort(List<Question> questions,Comparator<Question> comparator){
      if(questions==null||questions.size()==0){
          return null;
      }
-     ArrayList<Question> temp=new ArrayList<Question>(questions.size());
+     ArrayList<Question> temp=new ArrayList<Question>(/*questions.size()*/);
      for (int i=0;i< questions.size();i++){
          temp.add(null);
      }

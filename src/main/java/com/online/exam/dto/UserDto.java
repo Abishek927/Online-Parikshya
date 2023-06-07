@@ -26,11 +26,7 @@ public class UserDto {
     private String userStatus;
     private LocalDate userDateOfBirth;
     private String roleName;
-    private Long facultyId;
-    private Long categoryId;
     private Long courseId;
-    private Set<Long> facultySet;
-    private Set<Long> categorySet;
     private Set<Long> courseSet;
 
 }

@@ -1,5 +1,6 @@
 package com.online.exam.helper;
 
+import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.online.exam.model.Question;
 import com.online.exam.model.TitleComparator;
 import com.online.exam.model.User;
@@ -8,19 +9,20 @@ import com.online.exam.repo.QuestionRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-
+@Transactional
 public class HelperClass {
-
     private QuestionRepo questionRepo;
+
     private User user;
-    MergeSort mergeSort;
-
-
-    public HelperClass(QuestionRepo questionRepo,User user) {
-        this.questionRepo = questionRepo;
+    private MergeSort mergeSort;
+    @Autowired
+    public HelperClass(MergeSort mergeSort,User user,QuestionRepo questionRepo) {
+    this.questionRepo=questionRepo;
+        this.mergeSort=mergeSort;
         this.user=user;
     }
 
@@ -51,28 +53,38 @@ public class HelperClass {
     }
 
 
-    public List<Question> generateSortedQuestion(List<Question> questions, int questionLimitSize) throws Exception {
+    public List<Question> generateSortedQuestion(List<Question> questions, int questionLimitSize,User user,MergeSort mergeSort,QuestionRepo questionRepo) throws Exception {
         List<Question> sortedGeneratedQuestion = new ArrayList<>(questionLimitSize);
-        HelperClass helperClass=new HelperClass(questionRepo,user);
+        HelperClass helperClass=new HelperClass(mergeSort,user,questionRepo);
         if(helperClass.findAllQuestionByUser(user).size()>=questionLimitSize) {
             if (questionRepo.findBySelected(true).isEmpty()) {
                 sortedGeneratedQuestion.addAll(setSortedQuestion(questions, questionLimitSize));
             } else {
-             if (questionRepo.countQuestionBySelectedFlag(false) <= questionLimitSize) {
+                if (questionRepo.countQuestionBySelectedFlag(false) >= questionLimitSize) {
                     List<Question> retrievedQuestion = questionRepo.findBySelected(false);
                     sortedGeneratedQuestion.addAll(setSortedQuestion(retrievedQuestion, questionLimitSize));
                 } else if (questionRepo.countQuestionBySelectedFlag(true) == questionRepo.findAll().size()) {
-                    List<Question> questions1 = questionRepo.findAll();
+                    List<Question> questions1 = questionRepo.findByUser(user);
                     for (Question eachQuestion : questions1
                     ) {
                         eachQuestion.setSelected(false);
                         questionRepo.save(eachQuestion);
                     }
                     sortedGeneratedQuestion.addAll(setSortedQuestion(questions1, questionLimitSize));
+
+
+                } else if (questionRepo.countQuestionBySelectedFlag(false) < questionLimitSize) {
+                    List<Question> questions1 = questionRepo.findBySelected(true);
+                    for (Question eachQuestion : questions1
+                    ) {
+                        eachQuestion.setSelected(false);
+                        questionRepo.save(eachQuestion);
+
+                    }
+                    sortedGeneratedQuestion.addAll(setSortedQuestion(questions1, questionLimitSize));
+
                 }
             }
-        }else {
-            throw new Exception("invalid questionDisplayLimit");
         }
         return sortedGeneratedQuestion;
 

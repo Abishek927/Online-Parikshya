@@ -10,6 +10,7 @@ import com.online.exam.service.RoleService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Transactional
 public class RoleServiceImpl implements RoleService {
     @Autowired
     private RoleRepo roleRepo;
@@ -76,14 +78,10 @@ public class RoleServiceImpl implements RoleService {
 
             }).collect(Collectors.toSet()));
         }
-
-
-            Role resultRole = roleRepo.save(role);
+        Role resultRole = roleRepo.save(role);
         RoleDto roleDto1=new RoleDto();
         roleDto1.setName(resultRole.getRoleName());
         roleDto1.setAuthoritySet(resultRole.getAuthorities().stream().map(authority -> this.modelMapper.map(authority,AuthorityDto.class)).collect(Collectors.toSet()));
             return roleDto1;
-
-
     }
 }

@@ -42,11 +42,6 @@ public class Course {
     @JsonManagedReference(value = "course_table")
     private List<Exam> exams;
 
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinColumn(name = "cat_id_fk",referencedColumnName = "cat_id")
-    @JsonBackReference(value = "category_table")
-    private Category category;
-
     @ManyToMany(mappedBy = "courses")
     private Set<User> users;
 

@@ -31,12 +31,14 @@ public class ExamServiceImpl implements ExamService {
     private CourseRepo courseRepo;
     @Autowired
     private StudentExamAnswerRepo studentExamAnswerRepo;
+    @Autowired
+    private MergeSort mergeSort;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
         Map<Integer,String> message=new HashMap<>();
         User retrievedUser = userRepo.findByUserEmail(principal.getName());
-        HelperClass helperClass = new HelperClass(questionRepo,retrievedUser);
+        HelperClass helperClass = new HelperClass(mergeSort,retrievedUser,questionRepo);
         Course retrievedCourse = new Course();
         Set<Course> courses = retrievedUser.getCourses();
         Exam exam = new Exam();
@@ -46,7 +48,7 @@ public class ExamServiceImpl implements ExamService {
                 retrievedCourse = this.queryHelper.getCourseMethod(eachCourse.getCourseId());
                 List<Exam> exams = eachCourse.getExams();
                 if (!exams.isEmpty()) {
-                    if (checkWhetherExamWithGivenTitleExists(exams,examDto.getExamTitle())) {
+                    if (!checkWhetherExamWithGivenTitleExists(exams,examDto.getExamTitle())) {
                         message.put(500,"exam with the given title already exists!!!");
                         return message;
                     }
@@ -55,6 +57,18 @@ public class ExamServiceImpl implements ExamService {
             }
         }
         ExamHelper examHelper = new ExamHelper(questionRepo);
+        exam.setExamTitle(examDto.getExamTitle());
+        exam.setExamDesc(examDto.getExamDesc());
+        if(examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())){
+        exam.setQuestionPattern(QuestionPattern.sort.toString());
+        }
+        else if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())) {
+            exam.setQuestionPattern(QuestionPattern.random.toString());
+        }else {
+            message.put(500,"Please select a valid question pattern");
+            return message;
+        }
+
         if (examHelper.generateValidDate(examDto.getExamStartedTime(), examDto.getExamEndedTime())) {
             exam.setExamStartedTime(examDto.getExamStartedTime());
             exam.setExamEndedTime(examDto.getExamEndedTime());
@@ -66,8 +80,12 @@ public class ExamServiceImpl implements ExamService {
             return message;
         }
 
-                if(examDto.getQuestionPattern().equals(QuestionPattern.random)||examDto.getQuestionPattern().equals(QuestionPattern.sort)) {
-                    List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestionByUser(retrievedUser), exam.getExamQuestionDisplayLimit(),exam.getQuestionPattern());
+                if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())||examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())) {
+                    List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestionByUser(retrievedUser), examDto.getExamQuestionDisplayLimit(),examDto.getQuestionPattern(),mergeSort,retrievedUser,questionRepo);
+                    if(questions.isEmpty()){
+                        message.put(500,"Invalid question limit!!!");
+                        return message;
+                    }
                         exam.setExamQuestions(addQuestion(questions,exam));
                     exam.setExamTotalMarks(examHelper.generateTotalMarks(questions));
                 }else{
@@ -79,6 +97,7 @@ public class ExamServiceImpl implements ExamService {
             exam.setUser(Set.of(retrievedUser));
             retrievedUser.getExams().add(exam);
             exam.setExamMode(ExamStatus.pending.toString());
+            exam.setExamQuestionDisplayLimit(examDto.getExamQuestionDisplayLimit());
             exam.setExamStatus(true);
             this.examRepo.save(exam);
             message.put(200,"exam created successfully");
@@ -99,6 +118,7 @@ public class ExamServiceImpl implements ExamService {
                     eachUser.setExams(null);
                 }
                 retrievedExam.setUser(null);
+
                 List<ExamQuestion> examQuestions=retrievedExam.getExamQuestions();
                 for (ExamQuestion eachExamQuestion:examQuestions
                      ) {
@@ -106,6 +126,7 @@ public class ExamServiceImpl implements ExamService {
                         eachExamQuestion.setQuestion(null);
                     examQuestionRepo.delete(eachExamQuestion);
                 }
+
                 examRepo.deleteById(examId);
                 message.put(200,"exam deleted successfully");
             }
@@ -113,8 +134,9 @@ public class ExamServiceImpl implements ExamService {
                 message.put(500,"Invalid loggedInUser for delete operation");
                 return message;
             }
+        }else {
+            message.put(500, "Invalid exam mode for the delete operation");
         }
-        message.put(500,"Invalid exam mode for the delete operation");
         return message;
     }
 
@@ -137,6 +159,11 @@ public class ExamServiceImpl implements ExamService {
         return null;
     }
 
+    @Override
+    public ExamDto getExamById(Long examId) {
+        Exam retrievedExam=queryHelper.getExamMethod(examId);
+        return getExamDto(retrievedExam);
+    }
 
 
     @Override
@@ -173,10 +200,10 @@ public class ExamServiceImpl implements ExamService {
                     }
                 }
                 if (examDto.getExamQuestionDisplayLimit() > 0) {
-                    HelperClass helperClass = new HelperClass(questionRepo,loggedInUser);
+                    HelperClass helperClass = new HelperClass(mergeSort,loggedInUser,questionRepo);
                     List<Question> questions = helperClass.findAllQuestionByUser(loggedInUser);
                         if (examDto.getQuestionPattern().equals(QuestionPattern.sort) || examDto.getQuestionPattern().equals(QuestionPattern.random)) {
-                            List<Question> questionList = examHelper.generateQuestion(questions, examDto.getExamQuestionDisplayLimit(), examDto.getQuestionPattern());
+                            List<Question> questionList = examHelper.generateQuestion(questions, examDto.getExamQuestionDisplayLimit(), examDto.getQuestionPattern(),mergeSort,loggedInUser,questionRepo);
                             retrievedExam.setQuestionPattern(examDto.getQuestionPattern());
                             retrievedExam.setExamTotalMarks(examHelper.generateTotalMarks(questionList));
                             deleteOldQuestion(retrievedExam.getExamQuestions());
@@ -204,8 +231,8 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamDto startExam(Long courseId, Principal principal) {
-        return null;
+    public ExamDto startExam(Long examId, Principal principal) {
+        return getExamById(examId);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -261,12 +288,12 @@ public class ExamServiceImpl implements ExamService {
     }
     private List<ExamQuestion> addQuestion(List<Question> questions,Exam exam){
         List<ExamQuestion> examQuestions=new ArrayList<>();
-        ExamQuestion examQuestion=new ExamQuestion();
+
         for (Question eachQuestion:questions
              ) {
+            ExamQuestion examQuestion=new ExamQuestion();
             examQuestion.setQuestion(eachQuestion);
             examQuestion.setExam(exam);
-            examQuestionRepo.save(examQuestion);
             examQuestions.add(examQuestion);
         }
         return examQuestions;
@@ -279,6 +306,7 @@ public class ExamServiceImpl implements ExamService {
         examDto.setExamDesc(exam.getExamDesc());
         examDto.setExamTotalTime(exam.getExamTimeLimit());
         examDto.setTotalMarks(examDto.getTotalMarks());
+        examDto.setExamStartedTime(examDto.getExamStartedTime());
         List<ExamQuestion> examQuestions=exam.getExamQuestions();
         List<QuestionDto> questionDtos=new ArrayList<>();
 
@@ -304,19 +332,16 @@ public class ExamServiceImpl implements ExamService {
     private boolean checkCourseExamStudentProvided(SubmitAnswerDto submitAnswerDto,Principal principal){
         boolean status=false;
         User loggedInStudent=getStudent(principal);
-        Set<Category> categories=loggedInStudent.getCategories();
-        Course retrievedCourse=queryHelper.getCourseMethod(submitAnswerDto.getCourseId());
-        outerLoop:for (Category eachCategory:categories
+        Set<Course> retrievedCourse=loggedInStudent.getCourses();
+
+        OuterLoop:for (Course eachCourse:retrievedCourse
              ) {
-            List<Course> courses=eachCategory.getCourseList();
-            if(courses.contains(retrievedCourse)){
-                if(checkExamProvided(retrievedCourse,submitAnswerDto.getExamId())){
-                    status=true;
-                    break outerLoop;
+            if(eachCourse.getCourseId().equals(submitAnswerDto.getCourseId())) {
+                if (checkExamProvided(eachCourse, submitAnswerDto.getExamId())) {
+                    status = true;
+                    break OuterLoop;
                 }
-
             }
-
         }
         return status;
 

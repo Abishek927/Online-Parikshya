@@ -24,8 +24,7 @@ import java.util.Map;
 public class ExamController {
     @Autowired
     private ExamService examService;
-    @Autowired
-    private UserRepo  userRepo;
+
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('create_exam')")
@@ -38,11 +37,9 @@ public class ExamController {
 
     }
     @DeleteMapping("/delete/{examId}")
-    @PreAuthorize("hasAuthority('create_exam')")
+    @PreAuthorize("hasAuthority('delete_exam')")
     ResponseEntity<?> deleteExamController(@PathVariable("examId")Long examId,Principal principal) throws Exception {
-
-
-            Map<Integer,String> message= this.examService.deleteExam(examId,principal);
+        Map<Integer,String> message= this.examService.deleteExam(examId,principal);
             if (message.containsKey(200)) {
                 return new ResponseEntity<>(message, HttpStatusCode.valueOf(200));
             }
@@ -61,13 +58,20 @@ public class ExamController {
                 return new ResponseEntity<>(message,HttpStatusCode.valueOf(500));
     }
 
-    @GetMapping("/read/{courseId}")
+    @GetMapping("/read-exams/{courseId}")
+    @PreAuthorize("hasAuthority('view_exam')")
     ResponseEntity<?> getExamByCourseController(@PathVariable("courseId")Long courseId) throws Exception {
         List<ExamDto> exams =this.examService.getExamByCourse(courseId);
         if(!exams.isEmpty()){
             return new ResponseEntity<>(exams,HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse("No exam for the given course!!!",false), HttpStatus.NO_CONTENT);
+    }
+    @GetMapping("/read-exam/{examId}")
+    @PreAuthorize("hasAuthority('view_exam')")
+    ResponseEntity<?> getExamByIdController(@PathVariable("examId")Long examId) throws Exception {
+        ExamDto exams =this.examService.getExamById(examId);
+        return new ResponseEntity<>(exams,HttpStatusCode.valueOf(200));
     }
 
 }
