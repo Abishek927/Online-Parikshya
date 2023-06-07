@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,13 +46,15 @@ public class QuestionController {
     }
 
     @GetMapping("/readByCourse/{cId}")
-    @PreAuthorize("hasAuthority('manage_question')")
+    @PreAuthorize("hasAuthority('view_question')")
     ResponseEntity<?> getQuestionByCourse(@PathVariable Long cId,Principal principal){
+        Map<String,List<QuestionDto>> message=new HashMap<>();
         List<QuestionDto> questions =this.questionService.getQuestionByCourse(cId,principal);
         if(questions.isEmpty()){
             return new ResponseEntity<>(new ApiResponse("there is no question for the given course",true),HttpStatusCode.valueOf(200));
         }
-        return new ResponseEntity<>(questions,HttpStatusCode.valueOf(200));
+        message.put("data",questions);
+        return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
     }
     @GetMapping("/read/{qId}")
     @PreAuthorize("hasAuthority('manage_question')")
