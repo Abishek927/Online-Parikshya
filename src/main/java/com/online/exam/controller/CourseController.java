@@ -58,9 +58,11 @@ public class CourseController {
     @GetMapping("/readAll")
     ResponseEntity<?> getAllCourse()
     {
+        Map<String,List<CourseDto>> message=new HashMap<>();
         List<CourseDto> courseDtos=this.courseService.getAllCourse();
         if(!courseDtos.isEmpty()){
-            return new ResponseEntity<>(courseDtos,HttpStatusCode.valueOf(200));
+            message.put("data",courseDtos);
+            return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse("there is no courses!!!",false),HttpStatusCode.valueOf(200));
     }

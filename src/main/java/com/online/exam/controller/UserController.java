@@ -3,7 +3,9 @@ package com.online.exam.controller;
 import com.online.exam.dto.UserDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.helper.JwtHelper;
+import com.online.exam.model.Course;
 import com.online.exam.model.UserStatus;
+import com.online.exam.repo.CourseRepo;
 import com.online.exam.repo.RoleRepo;
 import com.online.exam.security.CustomUserDetailService;
 import com.online.exam.security.UserPrincipal;
@@ -36,6 +38,8 @@ public class UserController {
     private CustomUserDetailService customUserDetailService;
     @Autowired
     private RoleRepo roleRepo;
+    @Autowired
+    private CourseRepo courseRepo;
     @PostMapping("/create")
     ResponseEntity<Map<Integer,String>> createUser(@RequestBody UserDto userDto) throws Exception {
 
@@ -130,6 +134,10 @@ public class UserController {
             String jwt="Bearer "+jwtToken;
             message.put("status:","200");
             message.put("JwtToken:",jwt);
+            Course course=courseRepo.findCourseByTeacher(userName);
+            if(course!=null){
+                message.put("course",course.getCourseId().toString());
+            }
             return ResponseEntity.ok().body(message);
         }else{
             throw new Exception("Invalid userststatus to generate token");
