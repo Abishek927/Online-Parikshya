@@ -1,14 +1,9 @@
 package com.online.exam.helper;
-
-import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.online.exam.model.Question;
 import com.online.exam.model.TitleComparator;
 import com.online.exam.model.User;
 import com.online.exam.repo.QuestionRepo;
-
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -34,11 +29,7 @@ public class HelperClass {
         List<Question> randomGeneratedQuestion = new ArrayList<>(questionLimitSize);
         randomGeneratedQuestion=generateRandomQuestionIndexAndGenerateQuestion(questions,questionLimitSize,randomGeneratedQuestion);
 
-
-
-
-
-          /*  outerLoop:
+        /*  outerLoop:
             for (int i = 0; i < questions.size(); i++) {
 
                 int result = (int) (Math.random() * questions.size());

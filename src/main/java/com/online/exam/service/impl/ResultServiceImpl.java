@@ -29,7 +29,6 @@ public class ResultServiceImpl implements ResultService {
     @Override
     public String createResult(Long studentExamAnswerId) throws ParseException {
         StudentExamAnswer studentExamAnswer=queryHelper.getStudentExamAnswer(studentExamAnswerId);
-
         Map<String,Object> resultProperties=resultCheckingService.calculateResultProperties(studentExamAnswer);
         Result result=setResultAccordingToProperties(resultProperties);
         if(result==null){
@@ -38,8 +37,6 @@ public class ResultServiceImpl implements ResultService {
         result.setExam(studentExamAnswer.getExam());
         result.setUser(studentExamAnswer.getUser());
         resultRepo.save(result);
-
-
         return "result created successfully";
     }
 

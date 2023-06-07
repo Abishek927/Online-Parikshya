@@ -8,6 +8,7 @@ import com.online.exam.model.*;
 import com.online.exam.model.StudentExamAnswer;
 import com.online.exam.repo.*;
 import com.online.exam.service.ExamService;
+import com.online.exam.service.ResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,8 @@ public class ExamServiceImpl implements ExamService {
     private StudentExamAnswerRepo studentExamAnswerRepo;
     @Autowired
     private MergeSort mergeSort;
+    @Autowired
+    private ResultService resultService;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
@@ -248,7 +251,9 @@ public class ExamServiceImpl implements ExamService {
             }
             setStudentExamAnswerAdditionalDetails(submitAnswerDto,studentExamAnswer,principal);
             studentExamAnswerRepo.save(studentExamAnswer);
-            message.put(200,"Student selected choice with question id has been successfully created!!!!");
+            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
+            String resultMessage=resultService.createResult(studentExamAnswer.getId());
+            message.put(200,"Student selected choice with question id has been successfully created and "+resultMessage);
         }else {
             message.put(500,"Something wrong with the provided details of student,course and exam!!!");
             return message;

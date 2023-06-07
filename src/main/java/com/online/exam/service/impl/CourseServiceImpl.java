@@ -37,7 +37,7 @@ public class CourseServiceImpl implements CourseService {
            if(!retrievedCourse.isEmpty()) {
                for (Course eachCourse : retrievedCourse
                ) {
-                   Course redundantCourse = this.courseRepo.findByCourseTitle(eachCourse.getCourseTitle());
+                   Course redundantCourse = this.courseRepo.findByCourseTitle(courseDto.getCourseTitle());
                    if (redundantCourse != null) {
                        throw new Exception("Course with the given title already exist in the given category");
                    }

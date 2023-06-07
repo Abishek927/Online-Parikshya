@@ -1,7 +1,6 @@
 package com.online.exam.helper;
 
-import com.online.exam.repo.QuestionRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.util.List;
 
