@@ -32,7 +32,13 @@ public class HelperClass {
     }
     public List<Question> generateRandomQuestion(List<Question> questions, int questionLimitSize) throws Exception {
         List<Question> randomGeneratedQuestion = new ArrayList<>(questionLimitSize);
-            outerLoop:
+        randomGeneratedQuestion=generateRandomQuestionIndexAndGenerateQuestion(questions,questionLimitSize,randomGeneratedQuestion);
+
+
+
+
+
+          /*  outerLoop:
             for (int i = 0; i < questions.size(); i++) {
 
                 int result = (int) (Math.random() * questions.size());
@@ -47,7 +53,7 @@ public class HelperClass {
                 }
 
 
-            }
+            }*/
             return randomGeneratedQuestion;
 
     }
@@ -100,6 +106,30 @@ public class HelperClass {
         }
         return resultSortedQuestion;
     }
+    
+    public List<Question> generateRandomQuestionIndexAndGenerateQuestion(List<Question> questions, int questionLimitSize,List<Question> generatedQuestion){
+
+        GenerateRandomNumber generateRandomNumber=new GenerateRandomNumber();
+        List<Long> randomIds=generateRandomNumber.generateRandomNumbers(questions.size(),questionLimitSize);
+        for (Long eachRandomId:randomIds
+             ) {
+            if(generatedQuestion.contains(questions.get(eachRandomId.intValue()))==true){
+                continue;
+            }
+            generatedQuestion.add(questions.get(eachRandomId.intValue()));
+            if(generatedQuestion.size()==questionLimitSize){
+                return generatedQuestion;
+            }
+        }
+        if(generatedQuestion.size()<questionLimitSize){
+            generateRandomQuestionIndexAndGenerateQuestion(questions,questionLimitSize,generatedQuestion);
+        }
+return generatedQuestion;
+
+    }
+
+
+
 
 
     }
