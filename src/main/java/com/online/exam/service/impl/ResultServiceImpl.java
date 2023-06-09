@@ -53,7 +53,7 @@ public class ResultServiceImpl implements ResultService {
              ) {
             switch (eachEntry.getKey()){
                 case "marksObtained":
-                    result.setMarksObtained(Integer.getInteger(eachEntry.getValue().toString()));
+                    result.setMarksObtained(Integer.parseInt(eachEntry.getValue().toString()));
                     break;
                 case "resultStatus":
                     result.setResultStatus(eachEntry.getValue().toString());

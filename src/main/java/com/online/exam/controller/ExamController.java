@@ -17,6 +17,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,9 +63,12 @@ public class ExamController {
     @GetMapping("/read-exams/{courseId}")
     @PreAuthorize("hasAuthority('view_exam')")
     ResponseEntity<?> getExamByCourseController(@PathVariable("courseId")Long courseId) throws Exception {
+        Map<String,Object> message=new HashMap<>();
         List<ExamDto> exams =this.examService.getExamByCourse(courseId);
         if(!exams.isEmpty()){
-            return new ResponseEntity<>(exams,HttpStatusCode.valueOf(200));
+            message.put("status",200);
+            message.put("data",exams);
+            return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
         }
         return new ResponseEntity<>(new ApiResponse("No exam for the given course!!!",false), HttpStatus.NO_CONTENT);
     }
@@ -81,8 +85,14 @@ public class ExamController {
     @GetMapping("/read-exam/{examId}")
     @PreAuthorize("hasAuthority('view_exam')")
     ResponseEntity<?> getExamByIdController(@PathVariable("examId")Long examId) throws Exception {
+        Map<String,Object> map=new HashMap<>();
         ExamDto exams =this.examService.getExamById(examId);
-        return new ResponseEntity<>(exams,HttpStatusCode.valueOf(200));
+        if(exams!=null) {
+            map.put("status", 200);
+            map.put("data",exams);
+            return ResponseEntity.status(HttpStatus.OK).body(map);
+        }
+        return new ResponseEntity<>(null,HttpStatusCode.valueOf(200));
     }
 
 }

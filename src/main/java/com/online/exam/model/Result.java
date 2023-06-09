@@ -23,7 +23,7 @@ public class Result {
     @JoinColumn(name="student_id_fk",referencedColumnName = "user_id")
     private User user;
     @Column(name="marks_obtained")
-    private Integer marksObtained;
+    private int marksObtained;
     @Column(name="result_status")
     private String resultStatus;
     @Column(name="correct_choice")

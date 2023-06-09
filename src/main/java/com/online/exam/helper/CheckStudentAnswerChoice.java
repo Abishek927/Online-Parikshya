@@ -38,7 +38,7 @@ public class CheckStudentAnswerChoice {
         Question question =questionRepo.findById(submitAnswer.getQuestionId()).get();
         String selectedAnswer=submitAnswer.getAnswerContent();
         String realAnswer=question.getAnswer().getAnswerContent();
-        if(selectedAnswer==realAnswer){
+        if(selectedAnswer.equals(realAnswer)){
             status=true;
         }
         return status;
@@ -57,7 +57,7 @@ public class CheckStudentAnswerChoice {
         return PassStatus.PASS.toString();
     }
 
-    public Integer calculatePercentage(StudentExamAnswer studentExamAnswer){
+    public float calculatePercentage(StudentExamAnswer studentExamAnswer){
         Integer marksObtained=calculateMarksObtained(studentExamAnswer);
         Integer totalMarks=studentExamAnswer.getExam().getExamTotalMarks();
         return ((marksObtained/totalMarks)*100);

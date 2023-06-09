@@ -96,7 +96,7 @@ public class UserController {
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
     }
     @GetMapping("/rejectUser/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('rejectUser')")
     public ResponseEntity<ApiResponse> rejectUserController(@PathVariable Long userId){
         String message=this.userService.rejectUser(userId);
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
@@ -109,13 +109,13 @@ public class UserController {
 
     }
     @GetMapping("/view-all-approved-student")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('view_user')")
     public ResponseEntity<List<UserDto>> viewAllApprovedStudent(){
         List<UserDto> allApprovedStudent=this.userService.viewAllApprovedStudent();
         return new ResponseEntity<>(allApprovedStudent,HttpStatusCode.valueOf(200));
     }
     @GetMapping("/view-all-approved-teacher")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('view_user')")
     public ResponseEntity<List<UserDto>> viewAllApprovedTeacher(){
                 List<UserDto> allApprovedTeacher=this.userService.viewAllApprovedTeacher();
                 return new ResponseEntity<>(allApprovedTeacher,HttpStatusCode.valueOf(200));
@@ -139,6 +139,7 @@ public class UserController {
             if(course!=null){
                 message.put("course",course.getCourseId().toString());
             }
+
             return ResponseEntity.ok().body(message);
         }else{
             throw new Exception("Invalid userststatus to generate token");

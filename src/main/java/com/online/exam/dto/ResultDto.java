@@ -12,6 +12,7 @@ import lombok.Setter;
 public class ResultDto {
     private String studentName;
     private String  examTitle;
+    private String courseName;
     private Integer marksObtained;
     private String resultStatus;
     private String correctChoice;

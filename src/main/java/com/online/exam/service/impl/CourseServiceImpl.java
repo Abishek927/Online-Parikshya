@@ -111,7 +111,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Integer countCourseByUser(Principal principal) {
         User loggedInUser=userRepo.findByUserEmail(principal.getName());
-        Integer courseCount=(loggedInUser.getCourses().size()>0)?courseRepo.countCourseByUsers(Set.of(loggedInUser)):0;
+        Integer courseCount=courseRepo.countCourseByUsers(loggedInUser.getUserId());
         return courseCount;
     }
 

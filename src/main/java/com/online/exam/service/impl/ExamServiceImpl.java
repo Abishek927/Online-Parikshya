@@ -258,7 +258,7 @@ public class ExamServiceImpl implements ExamService {
            checkAndSetQuestionWithChoice(submitAnswerDto,studentExamAnswer);
            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
             String resultMessage=resultService.createResult(studentExamAnswer.getId());
-            message.put(200,"Student selected choice with question id has been successfully created and ");
+            message.put(200,"Student selected choice with question id has been successfully created and "+resultMessage);
         }else {
             message.put(500,"Something wrong with the provided details of student,course and exam!!!");
             return message;
@@ -317,8 +317,8 @@ public class ExamServiceImpl implements ExamService {
         examDto.setExamTitle(exam.getExamTitle());
         examDto.setExamDesc(exam.getExamDesc());
         examDto.setExamTotalTime(exam.getExamTimeLimit());
-        examDto.setTotalMarks(examDto.getTotalMarks());
-        examDto.setExamStartedTime(examDto.getExamStartedTime());
+        examDto.setTotalMarks(exam.getExamTotalMarks());
+        examDto.setExamStartedTime(exam.getExamStartedTime());
         List<ExamQuestion> examQuestions=exam.getExamQuestions();
         List<QuestionDto> questionDtos=new ArrayList<>();
 
