@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Map;
 
 @Service
@@ -63,7 +65,7 @@ public class ResultServiceImpl implements ResultService {
                     result.setPercentage(Float.parseFloat(eachEntry.getValue().toString()));
                     break;
                 case "examConductedDate":
-                    result.setExamConductedDate(LocalDate.parse(eachEntry.getValue().toString()));
+                    result.setExamConductedDate((Date)eachEntry.getValue());
                     break;
                 default:
                     break;

@@ -38,7 +38,7 @@ public class CheckStudentAnswerChoice {
         Question question =questionRepo.findById(submitAnswer.getQuestionId()).get();
         String selectedAnswer=submitAnswer.getAnswerContent();
         String realAnswer=question.getAnswer().getAnswerContent();
-        if(selectedAnswer.compareTo(realAnswer)==0){
+        if(selectedAnswer==realAnswer){
             status=true;
         }
         return status;
