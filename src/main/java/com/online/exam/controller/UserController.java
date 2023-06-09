@@ -146,6 +146,8 @@ public class UserController {
             if(courseId!=null){
                 message.put("courseId",courseId);
             }
+            String roleName=userRepo.findUserRoleName(userName);
+            message.put("RoleName",roleName);
 
 
             return ResponseEntity.ok().body(message);
@@ -191,6 +193,29 @@ public class UserController {
         }
         message.put("status","200");
         message.put("data",userDtos);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+
+    }
+
+
+    @GetMapping("/count/teacher")
+    @PreAuthorize("hasAuthority('view_count')")
+    ResponseEntity<Map<String,Integer>> countTeacher(){
+        Map<String,Integer> message=new HashMap<>();
+        Integer count=userRepo.countTeacher();
+        message.put("status",200);
+        message.put("data",count);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+
+    }
+
+    @GetMapping("/count/student")
+    @PreAuthorize("hasAuthority('view_count')")
+    ResponseEntity<Map<String,Integer>> countStudent(){
+        Map<String,Integer> message=new HashMap<>();
+        Integer count=userRepo.countStudent();
+        message.put("status",200);
+        message.put("data",count);
         return ResponseEntity.status(HttpStatus.OK).body(message);
 
     }
