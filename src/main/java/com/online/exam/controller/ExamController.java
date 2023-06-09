@@ -1,6 +1,7 @@
 package com.online.exam.controller;
 
 import com.online.exam.dto.ExamDto;
+import com.online.exam.dto.SubmitAnswerDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.model.Exam;
 import com.online.exam.model.User;
@@ -67,6 +68,16 @@ public class ExamController {
         }
         return new ResponseEntity<>(new ApiResponse("No exam for the given course!!!",false), HttpStatus.NO_CONTENT);
     }
+    @PostMapping("/submit-exams")
+    @PreAuthorize("hasAuthority('view_exam')")
+    ResponseEntity<?> submitExamController(@RequestBody SubmitAnswerDto submitAnswerDto,Principal principal) throws Exception {
+        Map<Integer,String> message =this.examService.submitExam(submitAnswerDto,principal);
+        if(!message.isEmpty()){
+            return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+        }
+        return new ResponseEntity<>(new ApiResponse("No exam for the given course!!!",false), HttpStatus.NO_CONTENT);
+    }
+
     @GetMapping("/read-exam/{examId}")
     @PreAuthorize("hasAuthority('view_exam')")
     ResponseEntity<?> getExamByIdController(@PathVariable("examId")Long examId) throws Exception {

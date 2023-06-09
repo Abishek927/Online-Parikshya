@@ -25,7 +25,7 @@ public class StudentExamAnswer {
     @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name="course_id_fk",referencedColumnName = "course_id")
     private Course course;
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "studentExamAnswer")
+    @OneToMany(cascade = CascadeType.PERSIST,fetch = FetchType.LAZY,mappedBy = "studentExamAnswer")
     @JsonManagedReference(value = "student_exam_answer")
     private List<SubmitAnswer> submitAnswers;
 

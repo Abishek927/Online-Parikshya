@@ -132,8 +132,8 @@ public class UserController {
             user.setUserPassword(null);
             String jwtToken = this.jwtHelper.generateToken(new UserPrincipal(user,roleRepo));
             String jwt="Bearer "+jwtToken;
-            message.put("status:","200");
-            message.put("JwtToken:",jwt);
+            message.put("status","200");
+            message.put("JwtToken",jwt);
             Course course=courseRepo.findCourseByTeacher(userName);
             if(course!=null){
                 message.put("course",course.getCourseId().toString());

@@ -36,6 +36,8 @@ public class ExamServiceImpl implements ExamService {
     private MergeSort mergeSort;
     @Autowired
     private ResultService resultService;
+    @Autowired
+    private SubmitAnswerRepo submitAnswerRepo;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
@@ -51,7 +53,7 @@ public class ExamServiceImpl implements ExamService {
                 retrievedCourse = this.queryHelper.getCourseMethod(eachCourse.getCourseId());
                 List<Exam> exams = eachCourse.getExams();
                 if (!exams.isEmpty()) {
-                    if (!checkWhetherExamWithGivenTitleExists(exams,examDto.getExamTitle())) {
+                    if (checkWhetherExamWithGivenTitleExists(exams,examDto.getExamTitle())) {
                         message.put(500,"exam with the given title already exists!!!");
                         return message;
                     }
@@ -238,22 +240,25 @@ public class ExamServiceImpl implements ExamService {
         return getExamById(examId);
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    //@Transactional(rollbackFor = Exception.class)
     @Override
     public Map<Integer, String> submitExam(SubmitAnswerDto submitAnswerDto, Principal principal) throws Exception {
         Map<Integer,String> message=new HashMap<>();
+        StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
 
         if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
-            StudentExamAnswer studentExamAnswer=checkAndSetQuestionWithChoice(submitAnswerDto);
+
             if(studentExamAnswer==null){
                 message.put(500,"Something went wrong!!!!");
                 return message;
             }
             setStudentExamAnswerAdditionalDetails(submitAnswerDto,studentExamAnswer,principal);
-            studentExamAnswerRepo.save(studentExamAnswer);
-            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
-            String resultMessage=resultService.createResult(studentExamAnswer.getId());
-            message.put(200,"Student selected choice with question id has been successfully created and "+resultMessage);
+            Integer result=studentExamAnswerRepo.insert(studentExamAnswer.getCourse().getCourseId(),studentExamAnswer.getExam().getExamId(),studentExamAnswer.getUser().getUserId());
+            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(submitAnswerDto.getExamId(), submitAnswerDto.getStudentId());
+           checkAndSetQuestionWithChoice(submitAnswerDto,studentExamAnswer);
+           //studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
+            //String resultMessage=resultService.createResult(studentExamAnswer.getId());
+            message.put(200,"Student selected choice with question id has been successfully created and ");
         }else {
             message.put(500,"Something wrong with the provided details of student,course and exam!!!");
             return message;
@@ -270,9 +275,11 @@ public class ExamServiceImpl implements ExamService {
         Boolean resultStatus=false;
         for (Exam eachExam:exams
              ) {
-            Exam exam=this.examRepo.findByExamTitle(title.toLowerCase());
-            if(exam==null){
-                resultStatus=true;
+            Exam exam=this.examRepo.findByExamTitle(title);
+            if(exam!=null) {
+                if (exam.getExamTitle().equals(eachExam.getExamTitle())) {
+                    resultStatus = true;
+                }
             }
         }
         return resultStatus;
@@ -367,21 +374,20 @@ public class ExamServiceImpl implements ExamService {
         return status;
     }
     @Transactional()
-    protected StudentExamAnswer checkAndSetQuestionWithChoice(SubmitAnswerDto submitAnswerDto) throws Exception {
-        StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
+    protected List<SubmitAnswer> checkAndSetQuestionWithChoice(SubmitAnswerDto submitAnswerDto,StudentExamAnswer studentExamAnswer) throws Exception {
+
         List<Question> questions=questionRepo.findQuestionByExam(submitAnswerDto.getExamId());
-        ValidateStudentAnswerChoice validateStudentAnswerChoice=new ValidateStudentAnswerChoice();
+        ValidateStudentAnswerChoice validateStudentAnswerChoice=new ValidateStudentAnswerChoice(questionRepo);
         List< SelectedChoiceDto> selectedChoiceDtos =submitAnswerDto.getSelectedChoiceDtos();
         if(selectedChoiceDtos.isEmpty()){
             return null;
         }
         if(checkQuestionIdWithSubmittedQuestionIdByStudent(questions,selectedChoiceDtos)&&validateStudentAnswerChoice.validateStudentAnswer(selectedChoiceDtos)){
-            studentExamAnswer.setSubmitAnswers(getAllSubmitAnswer(selectedChoiceDtos,studentExamAnswer));
+            return getAllSubmitAnswer(selectedChoiceDtos,studentExamAnswer);
         }else {
             return null;
         }
-        return studentExamAnswer;
-        
+
     }
     
     private boolean checkQuestionIdWithSubmittedQuestionIdByStudent(List<Question> questions,List<SelectedChoiceDto> selectedChoiceDtos){
@@ -408,11 +414,8 @@ public class ExamServiceImpl implements ExamService {
         List<SubmitAnswer> submitAnswers=new ArrayList<>();
         for (SelectedChoiceDto eachSelectedChoiceDto:selectedChoiceDtos
              ) {
-            SubmitAnswer submitAnswer=new SubmitAnswer();
-            submitAnswer.setAnswerContent(eachSelectedChoiceDto.getSelectedChoice());
-            submitAnswer.setQuestionId(eachSelectedChoiceDto.getQuestionId());
-            submitAnswer.setStudentExamAnswer(studentExamAnswer);
-            submitAnswers.add(submitAnswer);
+            submitAnswerRepo.insert(eachSelectedChoiceDto.getSelectedChoice(), eachSelectedChoiceDto.getQuestionId(), studentExamAnswer.getId());
+
         }
         return submitAnswers;
 

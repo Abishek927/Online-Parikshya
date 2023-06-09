@@ -9,8 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ValidateStudentAnswerChoice {
-    @Autowired
+
     private QuestionRepo questionRepo;
+   public ValidateStudentAnswerChoice(QuestionRepo questionRepo){
+        this.questionRepo=questionRepo;
+    }
+
 
     public List<String> getAllChoices(Long questionId){
         List<String> choices=new ArrayList<>();

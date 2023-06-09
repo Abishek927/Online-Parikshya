@@ -17,7 +17,7 @@ public class SubmitAnswer {
     private String answerContent;
     @Column(name="question_id")
     private Long questionId;
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.PERSIST,fetch = FetchType.EAGER)
     @JoinColumn(name = "sea_id_fk",referencedColumnName = "sea_id")
     @JsonBackReference(value = "student_exam_answer")
     private StudentExamAnswer studentExamAnswer;
