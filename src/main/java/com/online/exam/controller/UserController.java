@@ -7,6 +7,7 @@ import com.online.exam.model.Course;
 import com.online.exam.model.UserStatus;
 import com.online.exam.repo.CourseRepo;
 import com.online.exam.repo.RoleRepo;
+import com.online.exam.repo.UserRepo;
 import com.online.exam.security.CustomUserDetailService;
 import com.online.exam.security.UserPrincipal;
 import com.online.exam.service.UserService;
@@ -40,6 +41,8 @@ public class UserController {
     private RoleRepo roleRepo;
     @Autowired
     private CourseRepo courseRepo;
+    @Autowired
+    private UserRepo userRepo;
     @PostMapping("/create")
     ResponseEntity<Map<String,String>> createUser(@RequestBody UserDto userDto) throws Exception {
         Map<String,String>  message=new HashMap<>();
@@ -122,8 +125,8 @@ public class UserController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<Map<String,String>> login(@RequestBody UserDto userDto) throws Exception {
-        Map<String,String> message=new HashMap<>();
+    public ResponseEntity<Map<String,Object>> login(@RequestBody UserDto userDto) throws Exception {
+        Map<String,Object> message=new HashMap<>();
         String userName= userDto.getUserEmail();
         String password=userDto.getUserPassword();
         UserDetails userDetails=this.customUserDetailService.loadUserByUsername(userName);
@@ -139,6 +142,11 @@ public class UserController {
             if(course!=null){
                 message.put("course",course.getCourseId().toString());
             }
+            Long courseId=userRepo.findCourseIdByStudent(userName);
+            if(courseId!=null){
+                message.put("courseId",courseId);
+            }
+
 
             return ResponseEntity.ok().body(message);
         }else{
