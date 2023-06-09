@@ -41,17 +41,18 @@ public class UserController {
     @Autowired
     private CourseRepo courseRepo;
     @PostMapping("/create")
-    ResponseEntity<Map<Integer,String>> createUser(@RequestBody UserDto userDto) throws Exception {
-
-
-
-
-
+    ResponseEntity<Map<String,String>> createUser(@RequestBody UserDto userDto) throws Exception {
+        Map<String,String>  message=new HashMap<>();
         Map<Integer,String> resultUser=this.userService.createUser(userDto);
-        if(resultUser.containsKey(200)) {
-            return ResponseEntity.status(HttpStatus.OK).body(resultUser);
+        for (Map.Entry<Integer,String> entry:resultUser.entrySet()
+             ) {
+            if(entry.getKey()==500){
+                message.put("status","500");
+            }
+            message.put("data", entry.getValue());
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resultUser);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+
     }
 
 /*    @GetMapping("/readByEmail")
