@@ -256,8 +256,8 @@ public class ExamServiceImpl implements ExamService {
             Integer result=studentExamAnswerRepo.insert(studentExamAnswer.getCourse().getCourseId(),studentExamAnswer.getExam().getExamId(),studentExamAnswer.getUser().getUserId());
             studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(submitAnswerDto.getExamId(), submitAnswerDto.getStudentId());
            checkAndSetQuestionWithChoice(submitAnswerDto,studentExamAnswer);
-           //studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
-            //String resultMessage=resultService.createResult(studentExamAnswer.getId());
+           studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
+            String resultMessage=resultService.createResult(studentExamAnswer.getId());
             message.put(200,"Student selected choice with question id has been successfully created and ");
         }else {
             message.put(500,"Something wrong with the provided details of student,course and exam!!!");

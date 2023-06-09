@@ -158,22 +158,31 @@ public class UserController {
     @GetMapping("/readAllTeacher")
     @PreAuthorize("hasAuthority('read_teacher')")
     ResponseEntity<?> getAllTeacher(){
+        Map<String,Object> message=new HashMap<>();
         List<UserDto> userDtos=userService.viewPendingTeacher();
         if(userDtos.isEmpty()){
-            return ResponseEntity.status(HttpStatus.OK).body("No pending teacher found");
+            message.put("status","200");
+            message.put("data","No data found");
+            return ResponseEntity.status(HttpStatus.OK).body(message);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(userDtos);
-
+        message.put("status","200");
+        message.put("data",userDtos);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
     @GetMapping("/readAllStudent")
     @PreAuthorize("hasAuthority('read_student')")
     ResponseEntity<?> getAllStudent(){
+        Map<String,Object> message=new HashMap<>();
         List<UserDto> userDtos=userService.viewPendingStudent();
         if(userDtos.isEmpty()){
-            return ResponseEntity.status(HttpStatus.OK).body("No pending student found");
+            message.put("status","200");
+            message.put("data","No data found");
+            return ResponseEntity.status(HttpStatus.OK).body(message);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(userDtos);
+        message.put("status","200");
+        message.put("data",userDtos);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
 
     }
 

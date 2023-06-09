@@ -30,7 +30,7 @@ public class Result {
     private Integer correctChoice;
     private float percentage;
     @Column(name = "exam_conducted_date")
-    private LocalDate examConductedDate;//the date on which the exam was conducted
+    private Date examConductedDate;//the date on which the exam was conducted
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "exam_id_fk",referencedColumnName = "exam_id")
     private Exam exam;
