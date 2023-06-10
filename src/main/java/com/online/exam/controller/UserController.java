@@ -4,6 +4,7 @@ import com.online.exam.dto.UserDto;
 import com.online.exam.helper.ApiResponse;
 import com.online.exam.helper.JwtHelper;
 import com.online.exam.model.Course;
+import com.online.exam.model.User;
 import com.online.exam.model.UserStatus;
 import com.online.exam.repo.CourseRepo;
 import com.online.exam.repo.RoleRepo;
@@ -113,15 +114,31 @@ public class UserController {
     }
     @GetMapping("/view-all-approved-student")
     @PreAuthorize("hasAuthority('view_user')")
-    public ResponseEntity<List<UserDto>> viewAllApprovedStudent(){
-        List<UserDto> allApprovedStudent=this.userService.viewAllApprovedStudent();
-        return new ResponseEntity<>(allApprovedStudent,HttpStatusCode.valueOf(200));
+    public ResponseEntity<?> viewAllApprovedStudent(){
+        List<User> allApprovedStudent=this.userRepo.findApprovedStudent();
+        Map<String,Object> message=new HashMap<>();
+        if(allApprovedStudent==null) {
+            message.put("status", 200);
+            message.put("data",null);
+            return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+        }
+        message.put("status",200);
+        message.put("data",allApprovedStudent);
+        return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
     }
     @GetMapping("/view-all-approved-teacher")
     @PreAuthorize("hasAuthority('view_user')")
-    public ResponseEntity<List<UserDto>> viewAllApprovedTeacher(){
-                List<UserDto> allApprovedTeacher=this.userService.viewAllApprovedTeacher();
-                return new ResponseEntity<>(allApprovedTeacher,HttpStatusCode.valueOf(200));
+    public ResponseEntity<Map<String,Object>> viewAllApprovedTeacher(){
+        Map<String,Object> message=new HashMap<>();
+                List<User> allApprovedTeacher=userRepo.findApprovedTeacher();
+                if(allApprovedTeacher==null) {
+                    message.put("status","200");
+                    message.put("data",null);
+                    return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+                }
+                message.put("status","200");
+                message.put("data",allApprovedTeacher);
+                return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
     }
 
     @PostMapping(path = "/login")

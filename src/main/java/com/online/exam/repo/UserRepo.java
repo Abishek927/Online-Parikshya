@@ -13,10 +13,14 @@ public interface UserRepo extends JpaRepository<User,Long> {
 
     User findByUserEmail(String userEmail);
     User findByUserName(String userName);
-    @Query(value = "select u.user_id,u.user_email,u.user_name,u.user_status,u.user_password,u.user_contact_number,u.deleted,u.is_enabled,u.user_date_of_birth,u.user_gender,u.user_roll_no from user_table u where u.user_status=?1",nativeQuery = true)
-    List<User> findPendingTeacher(String status);
-    @Query(value = "select u.user_id,u.user_email,u.user_name,u.user_status,u.user_password,u.user_contact_number,u.deleted,u.is_enabled,u.user_date_of_birth,u.user_gender,u.user_roll_no from user_table u where u.user_status=?1",nativeQuery = true)
-    List<User> findPendingStudent(String status);
+    @Query(value = "select u.user_id,u.user_email,u.user_name,u.user_status,u.user_password,u.user_contact_number,u.deleted,u.is_enabled,u.user_date_of_birth,u.user_gender,u.user_roll_no from user_table u inner join user_role ur on u.user_id=ur.user_id_fk inner join role_table r on r.role_id=ur.role_id_fk where u.user_status='pending' and r.role_name='ROLE_TEACHER' ",nativeQuery = true)
+    List<User> findPendingTeacher();
+    @Query(value = "select u.user_id,u.user_email,u.user_name,u.user_status,u.user_password,u.user_contact_number,u.deleted,u.is_enabled,u.user_date_of_birth,u.user_gender,u.user_roll_no from user_table u inner join user_role ur on u.user_id=ur.user_id_fk inner join role_table r on r.role_id=ur.role_id_fk where u.user_status='pending' and r.role_name='ROLE_STUDENT'",nativeQuery = true)
+    List<User> findPendingStudent();
+    @Query(value = "select u.user_id,u.user_email,u.user_name,u.user_status,u.user_password,u.user_contact_number,u.deleted,u.is_enabled,u.user_date_of_birth,u.user_gender,u.user_roll_no from user_table u inner join user_role ur on u.user_id=ur.user_id_fk inner join role_table r on r.role_id=ur.role_id_fk where u.user_status='approved' and r.role_name='ROLE_TEACHER' ",nativeQuery = true)
+    List<User> findApprovedTeacher();
+    @Query(value = "select u.user_id,u.user_email,u.user_name,u.user_status,u.user_password,u.user_contact_number,u.deleted,u.is_enabled,u.user_date_of_birth,u.user_gender,u.user_roll_no from user_table u inner join user_role ur on u.user_id=ur.user_id_fk inner join role_table r on r.role_id=ur.role_id_fk where u.user_status='approved' and r.role_name='ROLE_STUDENT' ",nativeQuery = true)
+    List<User> findApprovedStudent();
     @Query(value = "select count(u.user_id) from user_table u inner join user_role ur on ur.user_id_fk=u.user_id inner  join role_table r on r.role_id=ur.role_id_fk where r.role_name='ROLE_TEACHER' and u.user_status='approved'",nativeQuery = true)
     Integer countTeacher();
     @Query(value = "select count(u.user_id) from user_table u inner join user_role ur on ur.user_id_fk=u.user_id inner  join role_table r on r.role_id=ur.role_id_fk where r.role_name='ROLE_STUDENT' and u.user_status='approved'",nativeQuery = true)

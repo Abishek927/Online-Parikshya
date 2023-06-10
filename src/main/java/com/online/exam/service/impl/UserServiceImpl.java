@@ -145,46 +145,11 @@ public class UserServiceImpl implements UserService {
         return "Reject All User";
     }
 
-    @Override
-    public List<UserDto> viewAllApprovedStudent() {
-
-        List<User> users= userRepo.findAll().stream().filter(user -> {
-            user.getUserRoles().stream().filter(role -> role.getRoleName().equals("ROLE_STUDENT"));
-            user.getUserStatus().equals(UserStatus.approved);
-
-            List<User> users1=new ArrayList<>();
-
-            return users1.add(user);
-
-        }).collect(Collectors.toList());
-
-        List<UserDto> userDtos=users.stream().map(user -> this.modelMapper.map(user,UserDto.class)).collect(Collectors.toList());
-
-        return userDtos;
-    }
-
-    @Override
-    public List<UserDto> viewAllApprovedTeacher() {
-
-
-        List<User> users= userRepo.findAll().stream().filter(user -> {
-            user.getUserRoles().stream().filter(role -> role.getRoleName().equals("ROLE_TEACHER"));
-            user.getUserStatus().equals(UserStatus.approved);
-            List<User> users1=new ArrayList<>();
-
-            return users1.add(user);
-
-        }).collect(Collectors.toList());
-
-        List<UserDto> userDtos=users.stream().map(user -> this.modelMapper.map(user,UserDto.class)).collect(Collectors.toList());
-
-        return userDtos;
-    }
 
     @Override
     public List<UserDto> viewPendingTeacher() {
         List<UserDto> userDtos=new ArrayList<>();
-        List<User> users=userRepo.findPendingTeacher("pending");
+        List<User> users=userRepo.findPendingTeacher();
         if(users.isEmpty()){
             return null;
         }
@@ -213,7 +178,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> viewPendingStudent() {
         List<UserDto> userDtos=new ArrayList<>();
-        List<User> users=userRepo.findPendingStudent("pending");
+        List<User> users=userRepo.findPendingStudent();
         if(users.isEmpty()){
             return null;
         }
