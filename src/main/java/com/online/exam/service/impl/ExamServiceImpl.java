@@ -250,10 +250,18 @@ public class ExamServiceImpl implements ExamService {
     @Transactional(rollbackFor = RuntimeException.class)
     @Override
     public Map<String,Object> submitExam(SubmitAnswerDto submitAnswerDto, Principal principal) throws Exception {
+        Map<String,Object> message=new HashMap<>();
         User loggeInUser=queryHelper.getUserMethod(submitAnswerDto.getStudentId());
         Exam retrievedExam=queryHelper.getExamMethod(submitAnswerDto.getExamId());
-        Map<String,Object> message=new HashMap<>();
-        StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
+        StudentExamAnswer studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(loggeInUser.getUserId(),retrievedExam.getExamId());
+        if(studentExamAnswer!=null){
+            retrievedExam.setExamStatus(Boolean.FALSE);
+            examRepo.save(retrievedExam);
+            message.put("Status",500);
+            message.put("data","User already submit the exam for the given exam");
+            return message;
+        }
+
 
         if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
             if(studentExamAnswer==null){
