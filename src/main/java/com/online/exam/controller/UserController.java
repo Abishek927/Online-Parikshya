@@ -159,10 +159,12 @@ public class UserController {
             Course course=courseRepo.findCourseByTeacher(userName);
             if(course!=null){
                 message.put("course",course.getCourseId().toString());
+
             }
             Long courseId=userRepo.findCourseIdByStudent(userName);
             if(courseId!=null){
                 message.put("courseId",courseId);
+                message.put("StudentId",user.getUserId());
             }
             String roleName=userRepo.findUserRoleName(userName);
             message.put("RoleName",roleName);

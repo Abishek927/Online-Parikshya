@@ -1,5 +1,6 @@
 package com.online.exam.service.impl;
 
+import com.online.exam.constant.AppConstant;
 import com.online.exam.dto.*;
 import com.online.exam.exception.ResourceNotFoundException;
 import com.online.exam.helper.QueryHelper;
@@ -12,6 +13,7 @@ import lombok.Data;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +41,9 @@ public class UserServiceImpl implements UserService {
 
 @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Value("${spring.mail.username}")
+    private String sender;
 
 
 
@@ -299,6 +304,31 @@ public class UserServiceImpl implements UserService {
         retrievedCourse.getUsers().add(user);
         return user;
 
+    }
+
+
+
+    private Email getEmail(User retrievedUser){
+        Map<String,Object> properties=new HashMap<>();
+
+        Email email=new Email();
+        email.setFrom(sender);
+        email.setTo(retrievedUser.getUserEmail());
+        switch (retrievedUser.getUserStatus()){
+            case "approved":
+                email.setSubject(AppConstant.ACCEPTED_SUBJECT);
+                email.setText(AppConstant.ACCEPT_MESSAGE);
+                break;
+            case "rejected":
+                email.setSubject(AppConstant.REJECTED_SUBJECT);
+                email.setText(AppConstant.REJECTION_MESSAGE);
+                break;
+        }
+        properties.put("name",retrievedUser.getUserName());
+        properties.put("subject",email.getSubject());
+        properties.put("body",email.getText());
+        email.setProperties(properties);
+        return email;
     }
 
 
