@@ -58,8 +58,8 @@ public class CheckStudentAnswerChoice {
     }
 
     public float calculatePercentage(StudentExamAnswer studentExamAnswer){
-        Integer marksObtained=calculateMarksObtained(studentExamAnswer);
-        Integer totalMarks=studentExamAnswer.getExam().getExamTotalMarks();
+        float marksObtained=calculateMarksObtained(studentExamAnswer);
+        float totalMarks=studentExamAnswer.getExam().getExamTotalMarks();
         return ((marksObtained/totalMarks)*100);
     }
     public Integer correctChoice(StudentExamAnswer studentExamAnswer){
