@@ -196,6 +196,7 @@ public class UserServiceImpl implements UserService {
                  ) {
                 if(eachRole.getRoleName().equals("ROLE_TEACHER")){
                     UserDto userDto=new UserDto();
+                    userDto.setUserId(eachPendingUser.getUserId());
                     userDto.setUserName(eachPendingUser.getUserName());
                     userDto.setUserEmail(eachPendingUser.getUserEmail());
                     userDto.setUserPassword(eachPendingUser.getUserPassword());
@@ -215,7 +216,7 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> viewPendingStudent() {
         List<UserDto> userDtos=new ArrayList<>();
         List<User> users=userRepo.findPendingStudent();
-        if(users.isEmpty()){
+        if(users==null){
             return null;
         }
         for (User eachPendingStudent:users
@@ -225,6 +226,7 @@ public class UserServiceImpl implements UserService {
                  ) {
                 if(eachRole.getRoleName().equals("ROLE_STUDENT")){
                         UserDto userDto=new UserDto();
+                        userDto.setUserId(eachPendingStudent.getUserId());
                         userDto.setUserEmail(eachPendingStudent.getUserEmail());
                         userDto.setUserName(eachPendingStudent.getUserName());
                         userDto.setUserStatus(eachPendingStudent.getUserStatus().toString());

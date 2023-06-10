@@ -157,6 +157,9 @@ public class ExamServiceImpl implements ExamService {
         if(!exams.isEmpty()){
             for (Exam eachExam:exams
                  ) {
+                if(eachExam.getExamStartedTime().before(new Date())){
+                    continue;
+                }
                 examDto=getExamDto(eachExam);
                 examDtos.add(examDto);
             }
