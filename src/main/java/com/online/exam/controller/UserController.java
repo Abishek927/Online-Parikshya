@@ -12,6 +12,7 @@ import com.online.exam.repo.UserRepo;
 import com.online.exam.security.CustomUserDetailService;
 import com.online.exam.security.UserPrincipal;
 import com.online.exam.service.UserService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -89,7 +90,7 @@ public class UserController {
 */
     @PostMapping("/approveUser/{userId}")
     @PreAuthorize("hasAuthority('approve_user')")
-    public ResponseEntity<ApiResponse> approveUserController(@PathVariable Long userId){
+    public ResponseEntity<ApiResponse> approveUserController(@PathVariable Long userId) throws MessagingException {
         String message=this.userService.approveUser(userId);
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
 
@@ -101,8 +102,8 @@ public class UserController {
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
     }
     @GetMapping("/rejectUser/{userId}")
-    @PreAuthorize("hasAuthority('rejectUser')")
-    public ResponseEntity<ApiResponse> rejectUserController(@PathVariable Long userId){
+    @PreAuthorize("hasAuthority('reject_user')")
+    public ResponseEntity<ApiResponse> rejectUserController(@PathVariable Long userId) throws MessagingException {
         String message=this.userService.rejectUser(userId);
         return new ResponseEntity<>(new ApiResponse(message,true),HttpStatusCode.valueOf(200));
     }

@@ -38,6 +38,8 @@ public class ExamServiceImpl implements ExamService {
     private ResultService resultService;
     @Autowired
     private SubmitAnswerRepo submitAnswerRepo;
+    @Autowired
+    private EmailSenderService emailSenderService;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
@@ -240,14 +242,13 @@ public class ExamServiceImpl implements ExamService {
         return getExamById(examId);
     }
 
-    //@Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     @Override
     public Map<Integer, String> submitExam(SubmitAnswerDto submitAnswerDto, Principal principal) throws Exception {
         Map<Integer,String> message=new HashMap<>();
         StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
 
         if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
-
             if(studentExamAnswer==null){
                 message.put(500,"Something went wrong!!!!");
                 return message;
@@ -255,7 +256,9 @@ public class ExamServiceImpl implements ExamService {
             setStudentExamAnswerAdditionalDetails(submitAnswerDto,studentExamAnswer,principal);
             Integer result=studentExamAnswerRepo.insert(studentExamAnswer.getCourse().getCourseId(),studentExamAnswer.getExam().getExamId(),studentExamAnswer.getUser().getUserId());
             studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(submitAnswerDto.getExamId(), submitAnswerDto.getStudentId());
-           checkAndSetQuestionWithChoice(submitAnswerDto,studentExamAnswer);
+           if(!checkAndSetQuestionWithChoice(submitAnswerDto,studentExamAnswer)){
+               throw new RuntimeException("something went wrong!!!");
+           }
            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
             String resultMessage=resultService.createResult(studentExamAnswer.getId());
             message.put(200,"Student selected choice with question id has been successfully created and "+resultMessage);
@@ -375,19 +378,23 @@ public class ExamServiceImpl implements ExamService {
         return status;
     }
     @Transactional()
-    protected List<SubmitAnswer> checkAndSetQuestionWithChoice(SubmitAnswerDto submitAnswerDto,StudentExamAnswer studentExamAnswer) throws Exception {
+    protected Boolean checkAndSetQuestionWithChoice(SubmitAnswerDto submitAnswerDto,StudentExamAnswer studentExamAnswer) throws Exception {
+        Boolean status = false;
+        List<Question> questions = questionRepo.findQuestionByExam(submitAnswerDto.getExamId());
+        ValidateStudentAnswerChoice validateStudentAnswerChoice = new ValidateStudentAnswerChoice(questionRepo);
+        List<SelectedChoiceDto> selectedChoiceDtos = submitAnswerDto.getSelectedChoiceDtos();
+        if (selectedChoiceDtos.isEmpty()) {
+            return status;
+        }
+        if (checkQuestionIdWithSubmittedQuestionIdByStudent(questions, selectedChoiceDtos) && validateStudentAnswerChoice.validateStudentAnswer(selectedChoiceDtos)) {
+            if (getAllSubmitAnswer(selectedChoiceDtos, studentExamAnswer)) {
+                status = true;
+            } else {
+                status = false;
+            }
+        }
 
-        List<Question> questions=questionRepo.findQuestionByExam(submitAnswerDto.getExamId());
-        ValidateStudentAnswerChoice validateStudentAnswerChoice=new ValidateStudentAnswerChoice(questionRepo);
-        List< SelectedChoiceDto> selectedChoiceDtos =submitAnswerDto.getSelectedChoiceDtos();
-        if(selectedChoiceDtos.isEmpty()){
-            return null;
-        }
-        if(checkQuestionIdWithSubmittedQuestionIdByStudent(questions,selectedChoiceDtos)&&validateStudentAnswerChoice.validateStudentAnswer(selectedChoiceDtos)){
-            return getAllSubmitAnswer(selectedChoiceDtos,studentExamAnswer);
-        }else {
-            return null;
-        }
+        return status;
 
     }
     
@@ -411,14 +418,15 @@ public class ExamServiceImpl implements ExamService {
     }
 
 
-    private List<SubmitAnswer> getAllSubmitAnswer(List<SelectedChoiceDto> selectedChoiceDtos,StudentExamAnswer studentExamAnswer){
+    private Boolean getAllSubmitAnswer(List<SelectedChoiceDto> selectedChoiceDtos,StudentExamAnswer studentExamAnswer){
+        Boolean status=false;
         List<SubmitAnswer> submitAnswers=new ArrayList<>();
         for (SelectedChoiceDto eachSelectedChoiceDto:selectedChoiceDtos
              ) {
             submitAnswerRepo.insert(eachSelectedChoiceDto.getSelectedChoice(), eachSelectedChoiceDto.getQuestionId(), studentExamAnswer.getId());
-
+            status=true;
         }
-        return submitAnswers;
+        return status;
 
     }
 

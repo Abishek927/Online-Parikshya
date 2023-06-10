@@ -9,6 +9,7 @@ import com.online.exam.repo.RoleRepo;
 import com.online.exam.repo.UserRepo;
 
 import com.online.exam.service.UserService;
+import jakarta.mail.MessagingException;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,6 +50,10 @@ public class UserServiceImpl implements UserService {
 
     @Value("${spring.mail.username}")
     private String sender;
+    @Autowired
+    private JavaMailSender javaMailSender;
+    @Autowired
+    private SpringTemplateEngine springTemplateEngine;
 
 
 
@@ -114,11 +124,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String approveUser(Long userId) {
+    @Transactional(rollbackFor = {MessagingException.class, MailSendException.class})
+    public String approveUser(Long userId) throws MessagingException {
        User user= this.userRepo.findById(userId).get();
        user.setUserStatus(UserStatus.approved.toString());
        user.setIsEnabled(Boolean.TRUE);
        userRepo.save(user);
+       Email email=getEmail(user);
+       EmailSenderService emailSenderService=new EmailSenderService(javaMailSender,springTemplateEngine);
+       emailSenderService.sendHtmlMessage(email);
         return "User approved!!!";
     }
 
@@ -134,10 +148,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String rejectUser(Long userId) {
+    @Transactional(rollbackFor = {MessagingException.class, MailSendException.class})
+    public String rejectUser(Long userId) throws MessagingException {
         User user=this.userRepo.findById(userId).get();
         user.setUserStatus(UserStatus.rejected.toString());
         userRepo.save(user);
+        Email email=getEmail(user);
+        EmailSenderService emailSenderService=new EmailSenderService(javaMailSender,springTemplateEngine);
+        emailSenderService.sendHtmlMessage(email);
         return "User Rejected!!!";
     }
 

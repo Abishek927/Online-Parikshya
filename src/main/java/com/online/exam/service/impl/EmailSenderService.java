@@ -1,10 +1,12 @@
 package com.online.exam.service.impl;
 
+import com.online.exam.constant.AppConstant;
 import com.online.exam.dto.Email;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,14 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class EmailSenderService {
-    @Autowired
+
     private JavaMailSender javaMailSender;
-    @Autowired
     private SpringTemplateEngine springTemplateEngine;
+
+    public EmailSenderService(JavaMailSender javaMailSender,SpringTemplateEngine springTemplateEngine){
+        this.javaMailSender=javaMailSender;
+        this.springTemplateEngine=springTemplateEngine;
+    }
 
     public void sendHtmlMessage(Email email) throws MessagingException {
         MimeMessage mimeMessage=javaMailSender.createMimeMessage();
@@ -31,5 +37,23 @@ public class EmailSenderService {
         messageHelper.setText(html,true);
         javaMailSender.send(mimeMessage);
 
+    }
+
+
+    public String sendSimpleMail(Email details) {
+
+        // Creating a simple mail message
+        SimpleMailMessage mailMessage
+                = new SimpleMailMessage();
+
+        // Setting up necessary details
+        mailMessage.setFrom(details.getFrom());
+        mailMessage.setTo(details.getTo());
+        mailMessage.setText(details.getText());
+        mailMessage.setSubject(details.getSubject());
+
+        // Sending the mail
+        javaMailSender.send(mailMessage);
+        return "Mail Sent Successfully...";
     }
 }

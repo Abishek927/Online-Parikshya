@@ -3,6 +3,7 @@ package com.online.exam.service;
 import com.online.exam.dto.UserDto;
 import com.online.exam.model.Role;
 import com.online.exam.model.User;
+import jakarta.mail.MessagingException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.security.Principal;
@@ -23,10 +24,10 @@ public interface UserService  {
    // UserDto updateUser(Long userId,UserDto updatedUser) throws Exception;
     List<User> getAllUser();
 
-    String approveUser(Long userId);
+    String approveUser(Long userId) throws MessagingException;
     String approveAllUser();
 
-    String rejectUser(Long userId);
+    String rejectUser(Long userId) throws MessagingException;
     String rejectAll();
 
 List<UserDto> viewAllApprovedTeacher();
