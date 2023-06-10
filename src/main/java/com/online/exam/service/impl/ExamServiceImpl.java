@@ -156,7 +156,8 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<ExamDto> getExamByCourse(Long courseId){
+    public List<ExamDto> getExamByCourse(Long courseId,Principal principal){
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
         List<ExamDto> examDtos=new ArrayList<>();
         ExamDto examDto;
         Course retrievedCourse=queryHelper.getCourseMethod(courseId);
@@ -166,6 +167,10 @@ public class ExamServiceImpl implements ExamService {
             for (Exam eachExam:exams
                  ) {
                 if(eachExam.getExamStartedTime().before(new Date())){
+                    continue;
+                }
+                StudentExamAnswer studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByStudent(eachExam.getExamId(), loggedInUser.getUserId());
+                if(studentExamAnswer!=null){
                     continue;
                 }
                 examDto=getExamDto(eachExam);

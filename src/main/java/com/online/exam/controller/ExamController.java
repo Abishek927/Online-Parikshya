@@ -60,9 +60,9 @@ public class ExamController {
 
     @GetMapping("/read-exams/{courseId}")
     @PreAuthorize("hasAuthority('view_exam')")
-    ResponseEntity<?> getExamByCourseController(@PathVariable("courseId")Long courseId) throws Exception {
+    ResponseEntity<?> getExamByCourseController(@PathVariable("courseId")Long courseId,Principal principal) throws Exception {
         Map<String,Object> message=new HashMap<>();
-        List<ExamDto> exams =this.examService.getExamByCourse(courseId);
+        List<ExamDto> exams =this.examService.getExamByCourse(courseId,principal);
         if(!exams.isEmpty()){
             message.put("status",200);
             message.put("data",exams);
