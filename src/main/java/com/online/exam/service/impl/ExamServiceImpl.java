@@ -40,6 +40,8 @@ public class ExamServiceImpl implements ExamService {
     private SubmitAnswerRepo submitAnswerRepo;
     @Autowired
     private EmailSenderService emailSenderService;
+    @Autowired
+    private ResultRepo resultRepo;
 
 
     public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
@@ -247,13 +249,16 @@ public class ExamServiceImpl implements ExamService {
 
     @Transactional(rollbackFor = RuntimeException.class)
     @Override
-    public Map<Integer, String> submitExam(SubmitAnswerDto submitAnswerDto, Principal principal) throws Exception {
-        Map<Integer,String> message=new HashMap<>();
+    public Map<String,Object> submitExam(SubmitAnswerDto submitAnswerDto, Principal principal) throws Exception {
+        User loggeInUser=queryHelper.getUserMethod(submitAnswerDto.getStudentId());
+        Exam retrievedExam=queryHelper.getExamMethod(submitAnswerDto.getExamId());
+        Map<String,Object> message=new HashMap<>();
         StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
 
         if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
             if(studentExamAnswer==null){
-                message.put(500,"Something went wrong!!!!");
+                message.put("Status",500);
+                message.put("data","Something went wrong!!!!");
                 return message;
             }
             setStudentExamAnswerAdditionalDetails(submitAnswerDto,studentExamAnswer,principal);
@@ -264,9 +269,13 @@ public class ExamServiceImpl implements ExamService {
            }
            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
             String resultMessage=resultService.createResult(studentExamAnswer.getId());
-            message.put(200,"Student selected choice with question id has been successfully created and "+resultMessage);
+            Result result1=resultRepo.findByUserAndExam(loggeInUser,retrievedExam);
+            message.put("ResultId",result1.getResultId());
+            message.put("Status",200);
+            message.put("data","Student selected choice with question id has been successfully created and "+resultMessage);
         }else {
-            message.put(500,"Something wrong with the provided details of student,course and exam!!!");
+            message.put("Status",500);
+            message.put("data","Something wrong with the provided details of student,course and exam!!!");
             return message;
 
         }

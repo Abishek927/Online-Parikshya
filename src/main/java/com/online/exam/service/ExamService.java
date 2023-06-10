@@ -16,7 +16,7 @@ public interface ExamService {
     Map<Integer,String> updateExam(ExamDto examDto, Principal principal) throws Exception;
     ExamDto startExam(Long examId,Principal principal);
 
-    Map<Integer,String> submitExam(SubmitAnswerDto submitAnswerDto,Principal principal) throws Exception;
+    Map<String,Object> submitExam(SubmitAnswerDto submitAnswerDto,Principal principal) throws Exception;
 
 
 }
