@@ -66,7 +66,6 @@ public class PdfServiceImpl implements PdfService {
         footer.setBorderWidthBottom(0);
         document.setFooter(footer);
 
-
         document.open();
 
         Font titleFont= FontFactory.getFont(FontFactory.HELVETICA,35);
@@ -84,6 +83,7 @@ public class PdfServiceImpl implements PdfService {
 
         writeResultHeader(table);
         writeResultData(table,map);
+        document.add(table);
         document.close();
 
         return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());

@@ -29,7 +29,8 @@ public interface UserService  {
     String rejectUser(Long userId);
     String rejectAll();
 
-
+List<UserDto> viewAllApprovedTeacher();
+List<UserDto> viewAllApprovedStudent();
 
 
     List<UserDto> viewPendingTeacher();

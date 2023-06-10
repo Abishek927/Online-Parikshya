@@ -22,6 +22,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -113,32 +114,32 @@ public class UserController {
 
     }
     @GetMapping("/view-all-approved-student")
-    @PreAuthorize("hasAuthority('view_user')")
-    public ResponseEntity<?> viewAllApprovedStudent(){
-        List<User> allApprovedStudent=this.userRepo.findApprovedStudent();
+    @PreAuthorize("hasAuthority('view_approved_student')")
+    public ResponseEntity<?> viewAllApprovedStudent(Principal principal){
+        List<UserDto> userDtos=userService.viewAllApprovedStudent();
         Map<String,Object> message=new HashMap<>();
-        if(allApprovedStudent==null) {
+        if(userDtos==null) {
             message.put("status", 200);
             message.put("data",null);
-            return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+            return  ResponseEntity.status(HttpStatus.OK).body(message);
         }
         message.put("status",200);
-        message.put("data",allApprovedStudent);
-        return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+        message.put("data",userDtos);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
     @GetMapping("/view-all-approved-teacher")
-    @PreAuthorize("hasAuthority('view_user')")
-    public ResponseEntity<Map<String,Object>> viewAllApprovedTeacher(){
+    @PreAuthorize("hasAuthority('view_approved_teacher')")
+    public ResponseEntity<Map<String,Object>> viewAllApprovedTeacher(Principal principal){
         Map<String,Object> message=new HashMap<>();
-                List<User> allApprovedTeacher=userRepo.findApprovedTeacher();
-                if(allApprovedTeacher==null) {
+                List<UserDto>  userDtos=userService.viewAllApprovedTeacher();
+                if(userDtos==null) {
                     message.put("status","200");
                     message.put("data",null);
-                    return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+                    return ResponseEntity.status(HttpStatus.OK).body(message);
                 }
                 message.put("status","200");
-                message.put("data",allApprovedTeacher);
-                return new ResponseEntity<>(message,HttpStatusCode.valueOf(200));
+                message.put("data",userDtos);
+                return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
     @PostMapping(path = "/login")

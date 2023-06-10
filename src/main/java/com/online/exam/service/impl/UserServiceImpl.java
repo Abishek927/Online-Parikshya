@@ -145,6 +145,19 @@ public class UserServiceImpl implements UserService {
         return "Reject All User";
     }
 
+    @Override
+    public List<UserDto> viewAllApprovedTeacher() {
+        List<User>users =userRepo.findApprovedTeacher();
+        return users.stream().map(user -> getUserDto(user)).collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<UserDto> viewAllApprovedStudent() {
+        List<User> users=userRepo.findApprovedStudent();
+        return users.stream().map(user -> getUserDto(user)).collect(Collectors.toList());
+    }
+
 
     @Override
     public List<UserDto> viewPendingTeacher() {

@@ -1,7 +1,9 @@
 package com.online.exam.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.util.Set;
 
 @Entity
 @Table(name="role_table")
+
 public class Role implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -27,6 +30,7 @@ public class Role implements Serializable {
     private String roleName;
 
     @ManyToMany(mappedBy = "userRoles")
+    @JsonIgnore
     private Set<User> userSet;
 
     @ManyToMany(fetch = FetchType.EAGER)

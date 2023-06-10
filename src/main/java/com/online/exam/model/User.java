@@ -1,9 +1,7 @@
 package com.online.exam.model;
 
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
@@ -23,6 +21,7 @@ import java.util.Set;
 @Table(name = "user_table")
 @SQLDelete(sql = "UPDATE user_table u set u.deleted=true where u.user_id=?")
 @Where(clause = "deleted=false")
+
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -47,7 +46,7 @@ public class User implements Serializable {
     private String userStatus;
     private Boolean isEnabled = Boolean.FALSE;
 
-
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",

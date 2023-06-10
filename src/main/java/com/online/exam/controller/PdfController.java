@@ -6,6 +6,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ public class PdfController {
     private PdfService pdfService;
 
     @PostMapping("/createPdf/{resultId}")
+    @PreAuthorize("hasAuthority('view_result')")
     public ResponseEntity<InputStreamResource> createPdf(@PathVariable Long resultId){
 
         ByteArrayInputStream pdf =pdfService.createPdf(resultId);
