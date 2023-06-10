@@ -264,11 +264,7 @@ public class ExamServiceImpl implements ExamService {
 
 
         if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
-            if(studentExamAnswer==null){
-                message.put("Status",500);
-                message.put("data","Something went wrong!!!!");
-                return message;
-            }
+
             setStudentExamAnswerAdditionalDetails(submitAnswerDto,studentExamAnswer,principal);
             Integer result=studentExamAnswerRepo.insert(studentExamAnswer.getCourse().getCourseId(),studentExamAnswer.getExam().getExamId(),studentExamAnswer.getUser().getUserId());
             studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(submitAnswerDto.getExamId(), submitAnswerDto.getStudentId());
