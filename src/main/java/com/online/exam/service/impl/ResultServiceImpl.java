@@ -7,7 +7,6 @@ import com.online.exam.model.StudentExamAnswer;
 import com.online.exam.model.User;
 import com.online.exam.repo.CourseRepo;
 import com.online.exam.repo.ResultRepo;
-import com.online.exam.repo.StudentExamAnswerRepo;
 import com.online.exam.repo.UserRepo;
 import com.online.exam.service.ResultCheckingService;
 import com.online.exam.service.ResultService;
@@ -17,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
