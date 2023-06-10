@@ -10,13 +10,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResultDto {
+    private Integer resultId;
     private String studentName;
     private String  examTitle;
     private String courseName;
     private Integer marksObtained;
     private String resultStatus;
-    private String correctChoice;
-    private String percentage;
+    private Integer correctChoice;
+    private float percentage;
     private String examConductedDate;
 
 }

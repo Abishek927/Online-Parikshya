@@ -4,19 +4,25 @@ import com.online.exam.dto.ResultDto;
 import com.online.exam.helper.QueryHelper;
 import com.online.exam.model.Result;
 import com.online.exam.model.StudentExamAnswer;
+import com.online.exam.model.User;
+import com.online.exam.repo.CourseRepo;
 import com.online.exam.repo.ResultRepo;
 import com.online.exam.repo.StudentExamAnswerRepo;
+import com.online.exam.repo.UserRepo;
 import com.online.exam.service.ResultCheckingService;
 import com.online.exam.service.ResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(rollbackFor = {ParseException.class,RuntimeException.class})
@@ -27,6 +33,10 @@ public class ResultServiceImpl implements ResultService {
     private ResultCheckingService resultCheckingService;
     @Autowired
     private ResultRepo resultRepo;
+    @Autowired
+    private UserRepo userRepo;
+    @Autowired
+    private CourseRepo courseRepo;
 
     @Override
     public String createResult(Long studentExamAnswerId) throws ParseException {
@@ -43,8 +53,13 @@ public class ResultServiceImpl implements ResultService {
     }
 
     @Override
-    public ResultDto viewResult(Long examId, Long studentId) {
-        return null;
+    public List<ResultDto> viewResult(Principal principal) {
+        User loggedInUser=userRepo.findByUserEmail(principal.getName());
+        List<Result> resultList=resultRepo.findByUser(loggedInUser);
+        if(resultList==null){
+            return null;
+        }
+        return resultList.stream().map(result -> getResult(result)).collect(Collectors.toList());
     }
 
     private Result setResultAccordingToProperties(Map<String,Object> resultProperties){
@@ -73,5 +88,17 @@ public class ResultServiceImpl implements ResultService {
 
         }
         return result;
+    }
+
+    public ResultDto getResult(Result result){
+        ResultDto resultDto=new ResultDto();
+        resultDto.setCourseName(resultRepo.findCourseName(result.getUser().getUserId()));
+        resultDto.setExamTitle(result.getExam().getExamTitle());
+        resultDto.setResultStatus(result.getResultStatus());
+        resultDto.setResultId(result.getResultId());
+        resultDto.setCorrectChoice(result.getCorrectChoice());
+        resultDto.setPercentage(resultDto.getPercentage());
+        resultDto.setExamConductedDate(resultDto.getExamConductedDate());
+        return resultDto;
     }
 }
