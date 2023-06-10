@@ -31,11 +31,9 @@ public class ExamController {
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('create_exam')")
     ResponseEntity<?> createExamController(@RequestBody ExamDto examDto, Principal principal) throws Exception {
-        Map<Integer,String> message= this.examService.createExam(examDto,principal);
-            if(message.containsKey(200)) {
-                return new ResponseEntity<>(message, HttpStatusCode.valueOf(200));
-            }
-            return new ResponseEntity<>(message,HttpStatusCode.valueOf(500));
+        Map<String,Object> message= this.examService.createExam(examDto,principal);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+
 
     }
     @DeleteMapping("/delete/{examId}")

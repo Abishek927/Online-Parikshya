@@ -44,8 +44,8 @@ public class ExamServiceImpl implements ExamService {
     private ResultRepo resultRepo;
 
 
-    public Map<Integer,String> createExam(ExamDto examDto, Principal principal) throws Exception {
-        Map<Integer,String> message=new HashMap<>();
+    public Map<String,Object> createExam(ExamDto examDto, Principal principal) throws Exception {
+        Map<String,Object> message=new HashMap<>();
         User retrievedUser = userRepo.findByUserEmail(principal.getName());
         HelperClass helperClass = new HelperClass(mergeSort,retrievedUser,questionRepo);
         Course retrievedCourse = new Course();
@@ -58,7 +58,8 @@ public class ExamServiceImpl implements ExamService {
                 List<Exam> exams = eachCourse.getExams();
                 if (!exams.isEmpty()) {
                     if (checkWhetherExamWithGivenTitleExists(exams,examDto.getExamTitle())) {
-                        message.put(500,"exam with the given title already exists!!!");
+                        message.put("status",500);
+                        message.put("data","exam with the given title already exists!!!");
                         return message;
                     }
 
@@ -74,7 +75,8 @@ public class ExamServiceImpl implements ExamService {
         else if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())) {
             exam.setQuestionPattern(QuestionPattern.random.toString());
         }else {
-            message.put(500,"Please select a valid question pattern");
+            message.put("status",500);
+            message.put("data","Please select a valid question pattern");
             return message;
         }
 
@@ -85,20 +87,23 @@ public class ExamServiceImpl implements ExamService {
             exam.setExamTimeLimit(totalTime);
 
         } else {
-            message.put(500,"Something wrong went with starting time");
+            message.put("status",500);
+            message.put("data","Something wrong went with starting time");
             return message;
         }
 
                 if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())||examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())) {
                     List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestionByUser(retrievedUser), examDto.getExamQuestionDisplayLimit(),examDto.getQuestionPattern(),mergeSort,retrievedUser,questionRepo);
                     if(questions.isEmpty()){
-                        message.put(500,"Invalid question limit!!!");
+                        message.put("status",500);
+                        message.put("data","Invalid question limit!!!");
                         return message;
                     }
                         exam.setExamQuestions(addQuestion(questions,exam));
                     exam.setExamTotalMarks(examHelper.generateTotalMarks(questions));
                 }else{
-                    message.put(500,"please select a proper question pattern!!");
+                    message.put("status",500);
+                    message.put("data","please select a proper question pattern!!");
                     return message;
                 }
 
@@ -109,7 +114,8 @@ public class ExamServiceImpl implements ExamService {
             exam.setExamQuestionDisplayLimit(examDto.getExamQuestionDisplayLimit());
             exam.setExamStatus(true);
             this.examRepo.save(exam);
-            message.put(200,"exam created successfully");
+            message.put("status",200);
+            message.put("data","exam created successfully");
             return message;
 
     }
@@ -254,8 +260,8 @@ public class ExamServiceImpl implements ExamService {
         User loggeInUser=queryHelper.getUserMethod(submitAnswerDto.getStudentId());
         Exam retrievedExam=queryHelper.getExamMethod(submitAnswerDto.getExamId());
         StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
-        studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(loggeInUser.getUserId(),retrievedExam.getExamId());
-        if(studentExamAnswer!=null){
+        StudentExamAnswer studentExamAnswer1=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(loggeInUser.getUserId(),retrievedExam.getExamId());
+        if(studentExamAnswer1!=null){
             retrievedExam.setExamStatus(Boolean.FALSE);
             examRepo.save(retrievedExam);
             message.put("Status",500);

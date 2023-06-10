@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ExamService {
-    Map<Integer,String> createExam(ExamDto examDto,Principal principal) throws Exception;
+    Map<String,Object> createExam(ExamDto examDto,Principal principal) throws Exception;
     Map<Integer,String>deleteExam(Long examId, Principal principal) throws Exception;
     List<ExamDto> getExamByCourse(Long courseId);
     ExamDto getExamById(Long examId);
