@@ -91,12 +91,13 @@ public class ResultServiceImpl implements ResultService {
         ResultDto resultDto=new ResultDto();
         resultDto.setCourseName(resultRepo.findCourseName(result.getUser().getUserId()));
         resultDto.setExamTitle(result.getExam().getExamTitle());
+        resultDto.setMarksObtained(result.getMarksObtained());
         resultDto.setResultStatus(result.getResultStatus());
         resultDto.setResultId(result.getResultId());
         resultDto.setCorrectChoice(result.getCorrectChoice());
         resultDto.setPercentage(result.getPercentage());
         resultDto.setStudentName(result.getUser().getUserName());
-        resultDto.setExamConductedDate(resultDto.getExamConductedDate());
+        resultDto.setExamConductedDate(result.getExamConductedDate());
         return resultDto;
     }
 }

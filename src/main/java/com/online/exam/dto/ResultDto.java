@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,6 +20,6 @@ public class ResultDto {
     private String resultStatus;
     private Integer correctChoice;
     private float percentage;
-    private String examConductedDate;
+    private Date examConductedDate;
 
 }
