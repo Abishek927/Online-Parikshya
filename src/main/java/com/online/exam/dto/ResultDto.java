@@ -16,9 +16,9 @@ public class ResultDto {
     private String studentName;
     private String  examTitle;
     private String courseName;
-    private Integer marksObtained;
+    private int marksObtained;
     private String resultStatus;
-    private Integer correctChoice;
+    private int correctChoice;
     private float percentage;
     private Date examConductedDate;
 
