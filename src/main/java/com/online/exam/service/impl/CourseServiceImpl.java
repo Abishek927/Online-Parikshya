@@ -108,12 +108,7 @@ public class CourseServiceImpl implements CourseService {
         return courses.stream().map(course -> this.modelMapper.map(course,CourseDto.class)).collect(Collectors.toList());
     }
 
-    @Override
-    public Integer countCourseByUser(Principal principal) {
-        User loggedInUser=userRepo.findByUserEmail(principal.getName());
-        Integer courseCount=courseRepo.countCourseByUsers(loggedInUser.getUserId());
-        return courseCount;
-    }
+
 
 
 }

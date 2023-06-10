@@ -219,7 +219,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/count/teacher")
+  /*  @GetMapping("/count/teacher")
     @PreAuthorize("hasAuthority('view_count')")
     ResponseEntity<Map<String,Integer>> countTeacher(){
         Map<String,Integer> message=new HashMap<>();
@@ -239,7 +239,7 @@ public class UserController {
         message.put("data",count);
         return ResponseEntity.status(HttpStatus.OK).body(message);
 
-    }
+    }*/
 
 
 

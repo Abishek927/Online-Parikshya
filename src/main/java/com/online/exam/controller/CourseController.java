@@ -68,19 +68,7 @@ public class CourseController {
     }
 
 
-    @GetMapping("/read/count")
-    @PreAuthorize("hasAuthority('manage_course')")
-    ResponseEntity<Map<String,Integer>> getCourseCount(Principal principal){
-        Integer countValue=courseService.countCourseByUser(principal);
-        Map<String,Integer> message=new HashMap<>();
-        if(countValue==0){
-            message.put("No course created by user!!!",countValue);
-            return ResponseEntity.status(HttpStatus.OK).body(message);
-        }
-        message.put("status",200);
-        message.put("data",countValue);
-        return ResponseEntity.status(HttpStatus.OK).body(message);
-    }
+
 
 
 

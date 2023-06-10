@@ -13,7 +13,7 @@ public interface CourseService {
 
     CourseDto getCourseById(Long courseId) throws Exception;
     List<CourseDto> getAllCourse();
-    Integer countCourseByUser(Principal principal);
+
 
 
 
