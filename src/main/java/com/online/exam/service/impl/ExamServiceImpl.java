@@ -253,7 +253,8 @@ public class ExamServiceImpl implements ExamService {
         Map<String,Object> message=new HashMap<>();
         User loggeInUser=queryHelper.getUserMethod(submitAnswerDto.getStudentId());
         Exam retrievedExam=queryHelper.getExamMethod(submitAnswerDto.getExamId());
-        StudentExamAnswer studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(loggeInUser.getUserId(),retrievedExam.getExamId());
+        StudentExamAnswer studentExamAnswer=new StudentExamAnswer();
+        studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(loggeInUser.getUserId(),retrievedExam.getExamId());
         if(studentExamAnswer!=null){
             retrievedExam.setExamStatus(Boolean.FALSE);
             examRepo.save(retrievedExam);
@@ -261,8 +262,6 @@ public class ExamServiceImpl implements ExamService {
             message.put("data","User already submit the exam for the given exam");
             return message;
         }
-
-
         if(checkCourseExamStudentProvided(submitAnswerDto, principal)){
 
             setStudentExamAnswerAdditionalDetails(submitAnswerDto,studentExamAnswer,principal);
