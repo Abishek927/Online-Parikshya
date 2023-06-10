@@ -318,6 +318,7 @@ public class ExamServiceImpl implements ExamService {
         examDto.setExamDesc(exam.getExamDesc());
         examDto.setExamTotalTime(exam.getExamTimeLimit());
         examDto.setTotalMarks(exam.getExamTotalMarks());
+        examDto.setExamStatus(exam.getExamStatus());
         examDto.setExamStartedTime(exam.getExamStartedTime());
         List<ExamQuestion> examQuestions=exam.getExamQuestions();
         List<QuestionDto> questionDtos=new ArrayList<>();

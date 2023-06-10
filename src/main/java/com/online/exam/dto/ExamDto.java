@@ -15,6 +15,7 @@ public class ExamDto {
     private String examTitle;
     private String examDesc;
     private int examQuestionDisplayLimit;
+    private Boolean examStatus;
     @Column(name="exam_started_time")
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private Date examStartedTime;
