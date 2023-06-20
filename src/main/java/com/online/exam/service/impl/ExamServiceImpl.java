@@ -281,6 +281,7 @@ public class ExamServiceImpl implements ExamService {
            if(!checkAndSetQuestionWithChoice(submitAnswerDto,studentExamAnswer)){
                throw new RuntimeException("something went wrong!!!");
            }
+           checkAndSetMarksForGivenQuestion(studentExamAnswer);
            studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByUserAndExam(examRepo.findById(submitAnswerDto.getExamId()).get().getExamId(),userRepo.findByUserEmail(principal.getName()).getUserId());
             String resultMessage=resultService.createResult(studentExamAnswer.getId());
             Result result1=resultRepo.findByUserAndExam(loggeInUser,retrievedExam);
@@ -449,7 +450,11 @@ public class ExamServiceImpl implements ExamService {
         List<SubmitAnswer> submitAnswers=new ArrayList<>();
         for (SelectedChoiceDto eachSelectedChoiceDto:selectedChoiceDtos
              ) {
-            submitAnswerRepo.insert(eachSelectedChoiceDto.getSelectedChoice(), eachSelectedChoiceDto.getQuestionId(), studentExamAnswer.getId());
+            CheckStudentAnswerChoice checkStudentAnswerChoice=new CheckStudentAnswerChoice(questionRepo,examRepo);
+            if(checkStudentAnswerChoice.checkWhetherSubmittedChoiceCorrectOrNot(eachSelectedChoiceDto.getSelectedChoice(), eachSelectedChoiceDto.getQuestionId())) {
+                submitAnswerRepo.insert(eachSelectedChoiceDto.getSelectedChoice(), eachSelectedChoiceDto.getQuestionId(), studentExamAnswer.getId(),Boolean.TRUE);
+            }
+            submitAnswerRepo.insert(eachSelectedChoiceDto.getSelectedChoice(), eachSelectedChoiceDto.getQuestionId(), studentExamAnswer.getId(),Boolean.FALSE);
             status=true;
         }
         return status;
@@ -463,6 +468,17 @@ public class ExamServiceImpl implements ExamService {
         studentExamAnswer.setExam(retrievedExam);
         studentExamAnswer.setCourse(retrievedCourse);
         studentExamAnswer.setUser(retrievedUser);
+    }
+
+
+    private void checkAndSetMarksForGivenQuestion(StudentExamAnswer studentExamAnswer){
+        QuestionMarksAllocation questionMarksAllocation=new QuestionMarksAllocation(submitAnswerRepo,questionRepo);
+        List<SubmitAnswer> studentExamAnswers=submitAnswerRepo.findByStudentExamAnswer(studentExamAnswer);
+        for (SubmitAnswer eachSubmitAnswer:studentExamAnswers
+             ) {
+            Question question=questionRepo.findById(eachSubmitAnswer.getQuestionId()).get();
+            questionMarksAllocation.checkAndSetQuestionMarksAccordingToComplexity(question);
+        }
     }
 
 

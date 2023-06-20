@@ -36,6 +36,7 @@ public class ValidateStudentAnswerChoice {
         for (SelectedChoiceDto selectedChoiceDto:selectedChoiceDtos
              ) {
             if(selectedChoiceDto.getSelectedChoice()==null){
+                i=i+1;
                 continue;
             }
             List<String> choices=getAllChoices(selectedChoiceDto.getQuestionId());

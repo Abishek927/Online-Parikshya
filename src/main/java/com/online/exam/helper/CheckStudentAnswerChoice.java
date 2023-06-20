@@ -15,17 +15,21 @@ import java.util.Date;
 import java.util.List;
 @Component
 public class CheckStudentAnswerChoice {
-    @Autowired
     private QuestionRepo questionRepo;
-    @Autowired
+
     private ExamRepo examRepo;
+
+    public CheckStudentAnswerChoice(QuestionRepo questionRepo, ExamRepo examRepo) {
+        this.questionRepo = questionRepo;
+        this.examRepo = examRepo;
+    }
 
     public Integer calculateMarksObtained(StudentExamAnswer studentExamAnswer){
         Integer totalMarksObtained=0;
         List< SubmitAnswer> submitAnswers =studentExamAnswer.getSubmitAnswers();
         for (SubmitAnswer eachSubmitAnswer:submitAnswers
              ) {
-            if(checkWhetherSubmittedChoiceCorrectOrNot(eachSubmitAnswer)){
+            if(checkWhetherSubmittedChoiceCorrectOrNot(eachSubmitAnswer.getAnswerContent(), eachSubmitAnswer.getQuestionId())){
                 totalMarksObtained=totalMarksObtained+getMarksForEachQuestion(eachSubmitAnswer.getQuestionId());
             }
 
@@ -33,10 +37,10 @@ public class CheckStudentAnswerChoice {
         return totalMarksObtained;
     }
 
-    private boolean checkWhetherSubmittedChoiceCorrectOrNot(SubmitAnswer submitAnswer){
+    public boolean checkWhetherSubmittedChoiceCorrectOrNot(String submitAnswer,Long qusId){
         boolean status=false;
-        Question question =questionRepo.findById(submitAnswer.getQuestionId()).get();
-        String selectedAnswer=submitAnswer.getAnswerContent();
+        Question question =questionRepo.findById(qusId).get();
+        String selectedAnswer=submitAnswer;
         String realAnswer=question.getAnswer().getAnswerContent();
         if(selectedAnswer.equals(realAnswer)){
             status=true;
@@ -66,7 +70,7 @@ public class CheckStudentAnswerChoice {
         Integer correctCount=0;
         for (SubmitAnswer eachSubmitAnswer:
         studentExamAnswer.getSubmitAnswers()) {
-            if(checkWhetherSubmittedChoiceCorrectOrNot(eachSubmitAnswer)){
+            if(checkWhetherSubmittedChoiceCorrectOrNot(eachSubmitAnswer.getAnswerContent(), eachSubmitAnswer.getQuestionId())){
                 correctCount=correctCount+1;
             }
 
