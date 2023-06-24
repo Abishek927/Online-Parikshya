@@ -132,9 +132,22 @@ public class QuestionServiceImpl implements QuestionService {
         question.setChoice3(questionDto.getChoice3());
         question.setChoice4(questionDto.getChoice4());
         question.setQuestionMarks(questionDto.getQuestionMarks());
+        question.setDifficultyLevel(getQuestionDifficulty(questionDto.getDifficultyLevel()));
         question.setAnswerChoice(questionDto.getAnswerChoice().toString());
         return question;
     }
+    private String getQuestionDifficulty(String difficulty){
+        if(QuestionDifficulty.EASY.toString().equals(difficulty)){
+            return difficulty;
+        } else if (QuestionDifficulty.MEDIUM.toString().equals(difficulty)) {
+            return difficulty;
+
+        }else if (QuestionDifficulty.HARD.toString().equals(difficulty)){
+            return difficulty;
+        }
+        return null;
+    }
+
     private Map<String,String> getAnswerChoice(Question question) throws Exception {
         Map<String,String> answerChoice=new HashMap<>();
         switch (question.getAnswerChoice()){

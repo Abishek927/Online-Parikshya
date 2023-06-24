@@ -16,4 +16,7 @@ public interface ResultRepo extends JpaRepository<Result,Long> {
     String findCourseName(Long userId);
 
     List<Result> findByUser(User user);
+
+@Query(value = "select avg(rt.percentage) from result_table rt where rt.student_id_fk=?1 group by rt.student_id_fk",nativeQuery = true)
+    float calculateAverageStudentPercentage(Long studentId);
 }

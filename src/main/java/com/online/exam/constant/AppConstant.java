@@ -10,6 +10,10 @@ public class AppConstant {
     public final static String ACCEPTED_SUBJECT="System access control has been successfully accepted!!";
     public final static String REJECTED_SUBJECT="System access control has been reject!!!";
 
+    public final static float LOWER_PERCENTAGE=40.0f;
+    public final static float UPPER_PERCENTAGE=80.0f;
+
+
 
 
 

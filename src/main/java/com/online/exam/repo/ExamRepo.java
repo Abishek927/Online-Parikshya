@@ -13,4 +13,6 @@ public interface ExamRepo extends JpaRepository<Exam,Long> {
     List<Exam> findByCourse(Course course);
     Exam findByExamTitle(String name);
 
+    List<Exam> findByQuestionDifficultyType(String difficultyType);
+
 }

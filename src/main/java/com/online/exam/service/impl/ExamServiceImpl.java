@@ -1,4 +1,5 @@
 package com.online.exam.service.impl;
+import com.online.exam.constant.AppConstant;
 import com.online.exam.dto.ExamDto;
 import com.online.exam.dto.QuestionDto;
 import com.online.exam.dto.SelectedChoiceDto;
@@ -69,7 +70,9 @@ public class ExamServiceImpl implements ExamService {
         ExamHelper examHelper = new ExamHelper(questionRepo);
         exam.setExamTitle(examDto.getExamTitle());
         exam.setExamDesc(examDto.getExamDesc());
-        if(examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())){
+        exam.setQuestionPattern(QuestionPattern.random.toString());
+
+        /*if(examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())){
         exam.setQuestionPattern(QuestionPattern.sort.toString());
         }
         else if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())) {
@@ -78,7 +81,7 @@ public class ExamServiceImpl implements ExamService {
             message.put("status",500);
             message.put("data","Please select a valid question pattern");
             return message;
-        }
+        }*/
 
         if (examHelper.generateValidDate(examDto.getExamStartedTime(), examDto.getExamEndedTime())) {
             exam.setExamStartedTime(examDto.getExamStartedTime());
@@ -91,15 +94,20 @@ public class ExamServiceImpl implements ExamService {
             message.put("data","Something wrong went with starting time");
             return message;
         }
-
-                if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())||examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())) {
-                    List<Question> questions = examHelper.generateQuestion(helperClass.findAllQuestionByUser(retrievedUser), examDto.getExamQuestionDisplayLimit(),examDto.getQuestionPattern(),mergeSort,retrievedUser,questionRepo);
+        if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())) {
+                    List<Question> questions=helperClass.generateQuestionAccordingToDifficulty(examDto.getQuestionDifficultyType());
+                    if(questions==null){
+                        message.put("status",500);
+                        message.put("data","Please select a valid difficulty type");
+                        return message;
+                    }
+                    List<Question> retrievedQuestions = examHelper.generateQuestion(helperClass.findAllQuestionByUser(retrievedUser), examDto.getExamQuestionDisplayLimit(),examDto.getQuestionPattern(),mergeSort,retrievedUser,questionRepo);
                     if(questions.isEmpty()){
                         message.put("status",500);
                         message.put("data","Invalid question limit!!!");
                         return message;
                     }
-                        exam.setExamQuestions(addQuestion(questions,exam));
+                        exam.setExamQuestions(addQuestion(retrievedQuestions,exam));
                     exam.setExamTotalMarks(examHelper.generateTotalMarks(questions));
                 }else{
                     message.put("status",500);
@@ -161,9 +169,9 @@ public class ExamServiceImpl implements ExamService {
         List<ExamDto> examDtos=new ArrayList<>();
         ExamDto examDto;
         Course retrievedCourse=queryHelper.getCourseMethod(courseId);
-        List<Exam> exams=examRepo.findByCourse(retrievedCourse);
+        List<Exam> exams=assignExamAccordingToStudentAveragePercentage(loggedInUser);
 
-        if(!exams.isEmpty()){
+       if(!exams.isEmpty()){
             for (Exam eachExam:exams
                  ) {
                 if(eachExam.getExamStartedTime().before(new Date())){
@@ -178,8 +186,7 @@ public class ExamServiceImpl implements ExamService {
             }
             return examDtos;
         }
-
-        return null;
+       return null;
     }
 
     @Override
@@ -463,6 +470,18 @@ public class ExamServiceImpl implements ExamService {
         studentExamAnswer.setExam(retrievedExam);
         studentExamAnswer.setCourse(retrievedCourse);
         studentExamAnswer.setUser(retrievedUser);
+    }
+
+
+    private List<Exam> assignExamAccordingToStudentAveragePercentage(User loggedInUser){
+        float averageStudentPercentage=resultRepo.calculateAverageStudentPercentage(loggedInUser.getUserId());
+        if(averageStudentPercentage> AppConstant.UPPER_PERCENTAGE){
+            return examRepo.findByQuestionDifficultyType(QuestionDifficulty.HARD.toString());
+        }
+        else if (averageStudentPercentage<=AppConstant.UPPER_PERCENTAGE&&averageStudentPercentage>=AppConstant.LOWER_PERCENTAGE){
+            return examRepo.findByQuestionDifficultyType(QuestionDifficulty.MEDIUM.toString());
+        }
+        return examRepo.findByQuestionDifficultyType(QuestionDifficulty.EASY.toString());
     }
 
 

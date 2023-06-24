@@ -29,4 +29,6 @@ public interface UserRepo extends JpaRepository<User,Long> {
     Long findCourseIdByStudent(String email);
     @Query(value = "select r.role_name from user_table u inner join user_role ur on ur.user_id_fk=u.user_id inner join role_table r on r.role_id=ur.role_id_fk where u.user_email=?1",nativeQuery = true)
     String findUserRoleName(String email);
+    @Query(value = "select u.user_id from user_table as u join user_role as ur on u.user_id=ur.user_id_fk join role_table as r on r.role_id=ur.role_id_fk where r.role_name='ROLE_STUDENT'",nativeQuery = true)
+    List<Long> findAllStudentId();
 }

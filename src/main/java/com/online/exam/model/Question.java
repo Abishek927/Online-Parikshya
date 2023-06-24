@@ -36,6 +36,8 @@ public class Question {
     private int questionMarks;
     @Column(name="answer_choice")
     private String answerChoice;
+    @Column(name = "difficulty_level")
+    private String difficultyLevel;
 
     private boolean selected=false;
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)

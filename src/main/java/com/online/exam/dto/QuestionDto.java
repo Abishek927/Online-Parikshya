@@ -22,6 +22,7 @@ public class QuestionDto {
     private String choice2;
     private String choice3;
     private String choice4;
+    private String difficultyLevel;
     private int questionMarks;
     private String answerChoice;
     private Long courseId;

@@ -1,5 +1,6 @@
 package com.online.exam.helper;
 import com.online.exam.model.Question;
+import com.online.exam.model.QuestionDifficulty;
 import com.online.exam.model.TitleComparator;
 import com.online.exam.model.User;
 import com.online.exam.repo.QuestionRepo;
@@ -116,6 +117,19 @@ public class HelperClass {
             generateRandomQuestionIndexAndGenerateQuestion(questions,questionLimitSize,generatedQuestion);
         }
 return generatedQuestion;
+
+    }
+    public List<Question> generateQuestionAccordingToDifficulty(String diffucltyType){
+        if(QuestionDifficulty.EASY.toString().equals(diffucltyType)){
+            return questionRepo.findByDifficultyLevel(diffucltyType);
+        }
+        else if (QuestionDifficulty.MEDIUM.toString().equals(diffucltyType)){
+            return questionRepo.findByDifficultyLevel(diffucltyType);
+        }
+        else if (QuestionDifficulty.HARD.toString().equals(diffucltyType)){
+            return questionRepo.findByDifficultyLevel(diffucltyType);
+        }
+        return null;
 
     }
 

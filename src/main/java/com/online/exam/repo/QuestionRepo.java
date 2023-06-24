@@ -33,4 +33,7 @@ public interface QuestionRepo extends JpaRepository<Question,Long> {
     @Query(value = "select q.question_id,q.question_title,q.answer_choice, from  Question q where q.questionId not in(select q from q inner  join ExamQuestion eq on eq.question.questionId=q.questionId inner join Exam  e on e.examId=eq.exam.examId)",nativeQuery = true)
     List<Question> findByQuestionNotInExam();
 
+
+    List<Question> findByDifficultyLevel(String difficultyLevel);
+
 }
