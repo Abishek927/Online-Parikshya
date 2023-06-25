@@ -109,7 +109,7 @@ public class ExamServiceImpl implements ExamService {
                         return message;
                     }
                         exam.setExamQuestions(addQuestion(retrievedQuestions,exam));
-                    exam.setExamTotalMarks(examHelper.generateTotalMarks(questions));
+                    exam.setExamTotalMarks(examHelper.generateTotalMarks(retrievedQuestions));
 
 
             exam.setCourse(retrievedCourse);
