@@ -15,7 +15,7 @@ import java.util.Set;
 @Repository
 public interface QuestionRepo extends JpaRepository<Question,Long> {
     List<Question> findByCourse(Course course);
-    @Query(value = "select q.question_id,q.question_title,q.question_ch_1,q.question_ch_2,q.question_ch_3,q.question_ch_4,q.question_marks,q.answer_choice,q.selected,q.course_id_fk,q.user_id_fk,q.answer_id_fk from question_table q inner join exam_question_table eq on eq.question_id_fk=q.question_id inner join exam_table e on e.exam_id=eq.exam_id_fk where e.exam_id=?1",nativeQuery = true)
+    @Query(value = "select q.question_id,q.question_title,q.question_ch_1,q.question_ch_2,q.question_ch_3,q.question_ch_4,q.question_marks,q.answer_choice,q.selected,q.course_id_fk,q.user_id_fk,q.answer_id_fk,q.difficulty_level from question_table q inner join exam_question_table eq on eq.question_id_fk=q.question_id inner join exam_table e on e.exam_id=eq.exam_id_fk where e.exam_id=?1",nativeQuery = true)
   List<Question> findQuestionByExam(Long examId);
 
 
