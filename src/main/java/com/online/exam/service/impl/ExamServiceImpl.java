@@ -94,7 +94,7 @@ public class ExamServiceImpl implements ExamService {
             message.put("data","Something wrong went with starting time");
             return message;
         }
-        if(examDto.getQuestionPattern().equals(QuestionPattern.random.toString())) {
+
                     List<Question> questions=helperClass.generateQuestionAccordingToDifficulty(examDto.getExamDifficultyType());
                     if(questions==null){
                         message.put("status",500);
@@ -109,11 +109,7 @@ public class ExamServiceImpl implements ExamService {
                     }
                         exam.setExamQuestions(addQuestion(retrievedQuestions,exam));
                     exam.setExamTotalMarks(examHelper.generateTotalMarks(questions));
-                }else{
-                    message.put("status",500);
-                    message.put("data","please select a proper question pattern!!");
-                    return message;
-                }
+
 
             exam.setCourse(retrievedCourse);
             exam.setUser(Set.of(retrievedUser));
