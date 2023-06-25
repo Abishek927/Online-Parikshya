@@ -49,7 +49,7 @@ public class Exam {
     private String examMode;
     private String questionPattern;
     @Column(name = "question_difficulty_type")
-    private String questionDifficultyType;
+    private String examDifficultyType;
     private Boolean deleted=Boolean.FALSE;
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "exam")
     @JsonManagedReference(value = "exam_table")

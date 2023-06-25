@@ -22,7 +22,7 @@ public class ExamDto {
     @Column(name="exam_ended_time")
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private Date examEndedTime;
-    private String questionDifficultyType;
+    private String examDifficultyType;
     private String questionPattern;
     private Integer totalMarks;
     private List<QuestionDto> questionDtos;
