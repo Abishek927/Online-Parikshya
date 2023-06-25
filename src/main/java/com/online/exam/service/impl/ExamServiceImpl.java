@@ -476,12 +476,12 @@ public class ExamServiceImpl implements ExamService {
     private List<Exam> assignExamAccordingToStudentAveragePercentage(User loggedInUser){
         float averageStudentPercentage=resultRepo.calculateAverageStudentPercentage(loggedInUser.getUserId());
         if(averageStudentPercentage> AppConstant.UPPER_PERCENTAGE){
-            return examRepo.findByQuestionDifficultyType(QuestionDifficulty.HARD.toString());
+            return examRepo.findByExamDifficultyType(QuestionDifficulty.HARD.toString());
         }
         else if (averageStudentPercentage<=AppConstant.UPPER_PERCENTAGE&&averageStudentPercentage>=AppConstant.LOWER_PERCENTAGE){
-            return examRepo.findByQuestionDifficultyType(QuestionDifficulty.MEDIUM.toString());
+            return examRepo.findByExamDifficultyType(QuestionDifficulty.MEDIUM.toString());
         }
-        return examRepo.findByQuestionDifficultyType(QuestionDifficulty.EASY.toString());
+        return examRepo.findByExamDifficultyType(QuestionDifficulty.EASY.toString());
     }
 
 
