@@ -15,4 +15,6 @@ public interface ExamRepo extends JpaRepository<Exam,Long> {
 
     List<Exam> findByExamDifficultyType(String difficultyType);
 
+
+
 }
