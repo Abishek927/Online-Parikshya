@@ -70,6 +70,7 @@ public class ExamServiceImpl implements ExamService {
         ExamHelper examHelper = new ExamHelper(questionRepo);
         exam.setExamTitle(examDto.getExamTitle());
         exam.setExamDesc(examDto.getExamDesc());
+
         exam.setQuestionPattern(QuestionPattern.random.toString());
 
         /*if(examDto.getQuestionPattern().equals(QuestionPattern.sort.toString())){
@@ -114,6 +115,7 @@ public class ExamServiceImpl implements ExamService {
             exam.setCourse(retrievedCourse);
             exam.setUser(Set.of(retrievedUser));
             retrievedUser.getExams().add(exam);
+            exam.setExamDifficultyType(examDto.getExamDifficultyType());
             exam.setExamMode(ExamStatus.pending.toString());
             exam.setExamQuestionDisplayLimit(examDto.getExamQuestionDisplayLimit());
             exam.setExamStatus(true);
