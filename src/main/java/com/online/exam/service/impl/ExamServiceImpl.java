@@ -101,7 +101,7 @@ public class ExamServiceImpl implements ExamService {
                         message.put("data","Please select a valid difficulty type");
                         return message;
                     }
-                    List<Question> retrievedQuestions = examHelper.generateQuestion(questions, examDto.getExamQuestionDisplayLimit(),examDto.getQuestionPattern(),mergeSort,retrievedUser,questionRepo);
+                    List<Question> retrievedQuestions = examHelper.generateQuestion(questions, examDto.getExamQuestionDisplayLimit(),QuestionPattern.random.toString(),mergeSort,retrievedUser,questionRepo);
                     if(questions.isEmpty()){
                         message.put("status",500);
                         message.put("data","Invalid question limit!!!");
