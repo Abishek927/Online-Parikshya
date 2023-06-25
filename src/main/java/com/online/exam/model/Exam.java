@@ -48,7 +48,7 @@ public class Exam {
     private int examTotalMarks;
     private String examMode;
     private String questionPattern;
-    @Column(name = "question_difficulty_type")
+    @Column(name = "exam_difficulty_type")
     private String examDifficultyType;
     private Boolean deleted=Boolean.FALSE;
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "exam")
