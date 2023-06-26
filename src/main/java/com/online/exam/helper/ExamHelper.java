@@ -9,7 +9,6 @@ import java.util.List;
 
 
 public class ExamHelper {
-    @Autowired
     private QuestionRepo questionRepo;
     private User user;
     public ExamHelper(QuestionRepo questionRepo){

@@ -15,10 +15,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.security.Principal;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Transactional
 @Service
 public class ExamServiceImpl implements ExamService {
+    public void setCourseRepo(CourseRepo courseRepo) {
+        this.courseRepo = courseRepo;
+    }
+
     @Autowired
     private ExamRepo examRepo;
     @Autowired
@@ -83,18 +90,27 @@ public class ExamServiceImpl implements ExamService {
             message.put("data","Please select a valid question pattern");
             return message;
         }*/
+        ExecutorService executorService= Executors.newFixedThreadPool(10);
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (examHelper.generateValidDate(examDto.getExamStartedTime(), examDto.getExamEndedTime())) {
+                    exam.setExamStartedTime(examDto.getExamStartedTime());
+                    exam.setExamEndedTime(examDto.getExamEndedTime());
+                    Long totalTime = examHelper.generateTotalExamTime(examDto.getExamStartedTime(), examDto.getExamEndedTime());
+                    exam.setExamTimeLimit(totalTime);
 
-        if (examHelper.generateValidDate(examDto.getExamStartedTime(), examDto.getExamEndedTime())) {
-            exam.setExamStartedTime(examDto.getExamStartedTime());
-            exam.setExamEndedTime(examDto.getExamEndedTime());
-            Long totalTime = examHelper.generateTotalExamTime(examDto.getExamStartedTime(), examDto.getExamEndedTime());
-            exam.setExamTimeLimit(totalTime);
-
-        } else {
-            message.put("status",500);
-            message.put("data","Something wrong went with starting time");
+                }
+            }
+        });
+        executorService.shutdown();
+        if(exam.getExamTimeLimit()<=0){
+            message.put("data","something went wrong");
             return message;
         }
+
+
+
 
                     List<Question> questions=helperClass.generateQuestionAccordingToDifficulty(examDto.getExamDifficultyType());
                     if(questions==null){

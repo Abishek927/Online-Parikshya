@@ -22,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/count")
 public class CountController {
     @Autowired
-    private UserRepo userRepo;
+    protected UserRepo userRepo;
     @Autowired
     private CourseRepo courseRepo;
     @GetMapping("/all")
