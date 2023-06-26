@@ -101,18 +101,13 @@ public class ExamServiceImpl implements ExamService {
                     exam.setExamTimeLimit(totalTime);
 
                 }
+                else {
+                    throw new RuntimeException("something went wrong");
+                }
             }
         });
         executorService.shutdown();
-        if(exam.getExamTimeLimit()<=0){
-            message.put("data","something went wrong");
-            return message;
-        }
-
-
-
-
-                    List<Question> questions=helperClass.generateQuestionAccordingToDifficulty(examDto.getExamDifficultyType());
+        List<Question> questions=helperClass.generateQuestionAccordingToDifficulty(examDto.getExamDifficultyType());
                     if(questions==null){
                         message.put("status",500);
                         message.put("data","Please select a valid difficulty type");
