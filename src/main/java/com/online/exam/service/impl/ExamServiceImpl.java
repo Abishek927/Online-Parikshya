@@ -183,7 +183,7 @@ public class ExamServiceImpl implements ExamService {
        if(!exams.isEmpty()){
             for (Exam eachExam:exams
                  ) {
-                if(eachExam.getExamStartedTime().after(new Date())){
+                if(eachExam.getExamStartedTime().before(new Date())){
                     continue;
                 }
                 StudentExamAnswer studentExamAnswer=studentExamAnswerRepo.findStudentExamAnswerByStudent(eachExam.getExamId(), loggedInUser.getUserId());
